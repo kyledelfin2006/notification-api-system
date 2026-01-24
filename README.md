@@ -6,7 +6,7 @@
 
 A robust console-based notification dispatch system implementing OOP principles with dual logging (console + file) and retry mechanisms for reliable message delivery.
 
-## ✨ Features
+##  Features
 
 ### Core Functionality
 - **Multi-channel notifications**: Email, SMS, Push notifications
@@ -120,7 +120,7 @@ try {
 }
 ```
 
-## 🏗️ Architecture
+## System Architecture
 
 ```
 ┌─────────────┐
@@ -261,7 +261,7 @@ SMSNotification invalid = new SMSNotification(logger, "Test", "123", "Hi", "456"
 // Manager tracks both and calculates accurate statistics
 ```
 
-## 📊 Statistics Output
+##  Statistics Output
 
 After processing all notifications:
 ```
@@ -327,7 +327,7 @@ public class TestYourOwn {
 - **Thread Safety**: Basic retry uses `Thread.sleep()`
 - **Extensibility**: Easy to add new notification types or loggers
 
-## 📈 Potential Enhancements
+## Potential Enhancements
 
 1. **Database Integration**: Store notifications persistently
 2. **Priority System**: High/Medium/Low priority notifications
@@ -357,4 +357,4 @@ This project is open source and available for educational use.
 **Project Type**: Educational - OOP Design Patterns Demonstration  
 **Focus**: Clean architecture, design patterns, robust error handling
 
-*"Good code is its own best documentation."*
+* Thank you for reading !! 🙏🏻, this project is my stepping stones into something great (hopefully ✌🏻) *
