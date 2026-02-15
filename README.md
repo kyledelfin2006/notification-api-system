@@ -24,7 +24,7 @@ A robust console-based notification dispatch system implementing OOP principles 
 - **File Persistence**: All logs saved to file with timestamps
 - **Status Management**: Real-time tracking with detailed statistics
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Java 17 or higher
@@ -39,7 +39,7 @@ javac *.java
 java Main
 ```
 
-## 📖 Usage
+## Usage
 
 ### Basic Setup
 ```java
@@ -157,7 +157,7 @@ try {
         └─────────────┘  └────────────┘  └───────────────┘
 ```
 
-## 📁 File Descriptions
+## File Descriptions
 
 | File | Purpose |
 |------|---------|
@@ -173,7 +173,7 @@ try {
 | `DualLogger.java` | Combines console and file logging |
 | `Sendable.java` | Interface for sendable objects |
 
-## 🔍 Key Design Patterns
+##  Key Design Patterns
 
 ### 1. Template Method Pattern (`Notification.java`)
 ```java
@@ -207,7 +207,7 @@ public class DualLogger implements Logger {
 }
 ```
 
-## 🛠️ Technical Implementation Details
+## Technical Implementation Details
 
 ### Retry Mechanism
 - **3 maximum attempts** for transient failures
@@ -271,7 +271,7 @@ After processing all notifications:
 [INFO] Success Rate: 66.7%
 ```
 
-## 🔄 Workflow
+## Workflow
 
 1. **Create Notification** → Validation occurs in constructor
 2. **Add to Manager** → Added to internal list
@@ -283,7 +283,7 @@ After processing all notifications:
 4. **Update Status** → SENT or FAILED
 5. **Track Statistics** → Count successes/failures
 
-## 🚀 Running the Demo
+## Running the Demo
 
 The `Main.java` includes two built-in scenarios:
 
@@ -296,7 +296,7 @@ javac *.java
 java Main
 ```
 
-## 🧪 Testing Your Own Notifications
+## Testing Your Own Notifications
 
 ```java
 public class TestYourOwn {
@@ -320,7 +320,7 @@ public class TestYourOwn {
 }
 ```
 
-## 📝 Notes
+## Notes
 
 - **File Path**: Update `FileLogger` path in `Main.java` for your system
 - **Phone Format**: Philippine format (11 digits) used in SMS validation
@@ -338,7 +338,7 @@ public class TestYourOwn {
 7. **Multiple Languages**: Localized notification messages
 8. **Attachment Support**: For email notifications
 
-## 🤝 Contributing
+## Contributing
 
 Feel free to fork and extend this system! Some ideas:
 - Add Slack/Teams notifications
@@ -347,14 +347,14 @@ Feel free to fork and extend this system! Some ideas:
 - Add unit tests
 - Implement notification templates
 
-## 📄 License
+## License
 
 This project is open source and available for educational use.
 
 ---
 
-**Author**: Kyle Delfin, aldrinkyles@1219@gmail.com
-**Project Type**: Educational - OOP Design Patterns Demonstration  
+**Author**: Kyle, aldrinkyles@1219@gmail.com
+**Project Type**: Educational - OOP Design Patterns Demonstration - Interfaces
 **Focus**: Clean architecture, design patterns, robust error handling
 
-* Thank you for reading !! 🙏🏻, this project is my stepping stones into something great (hopefully ✌🏻) *
+* Thank you for reading!, this project is my stepping stones into something great (hopefully ✌🏻) *
