@@ -357,4 +357,4 @@ This project is open source and available for educational use.
 **Project Type**: Educational - OOP Design Patterns Demonstration - Interfaces
 **Focus**: Clean architecture, design patterns, robust error handling
 
-* Thank you for reading!, this project is my stepping stones into something great (hopefully ✌🏻) *
+* Thank you for reading! This project is used as a stepping stone into something great (hopefully ✌🏻) *
