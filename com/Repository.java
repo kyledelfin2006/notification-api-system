@@ -1,0 +1,10 @@
+package kyle.com;
+
+import java.util.List;
+
+public interface Repository<T> {
+    public void add(T type);
+    public void remove(T type);
+    List<T> getAll();
+    public void clear();
+}
