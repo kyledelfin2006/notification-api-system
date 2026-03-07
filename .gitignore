@@ -38,3 +38,5 @@ build/
 ### Mac OS ###
 .DS_StoreLogger.txt
 notifications.json
+Logger.txt
+notifications.json
