@@ -1,5 +1,4 @@
 package kyle.com;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,8 +32,5 @@ public class NotificationRepository implements Repository<Notification>{
     public void addAll(List<Notification> notifications) {
         notificationList.addAll(notifications);
     }
-
-
-
 
 }
