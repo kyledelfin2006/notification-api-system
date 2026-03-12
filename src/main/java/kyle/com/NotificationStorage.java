@@ -25,23 +25,31 @@ public class NotificationStorage implements Storage<Notification> {
     // Save all notifications to file // Should be caught externally
     @Override
     public void save(List<Notification> notifications) throws IOException {
+
+        logger.info("Saving: " + notifications.size() + " notifications");
+        for (Notification n : notifications) {
+          logger.info("  - " + n.getClass().getSimpleName() + ": " + n.getMessage());
+        }
+
+        logger.info("Saved to: " + new File(filename).getAbsolutePath());
+
         mapper.writeValue(new File(filename), notifications);
-    }
+}
 
     // Load all notifications from file // Should be caught externally
     @Override
     public List<Notification> load() throws IOException {
         File filePath = new File(filename);
 
-        // If file doesn't exist yet, return empty list
         if (!filePath.exists()) {
             return new ArrayList<>();
         }
 
-        // Jackson reads the JSON, looks at the "type" field, and creates the right subclass
         List<Notification> notifications = mapper.readValue(
-                filePath,                                                        //sms,push,email,system
+                // Jackson reads the JSON, looks at the "type" field, and creates the right subclass
+                filePath,                                                   //sms,push,email,system
                 mapper.getTypeFactory().constructCollectionType(List.class, Notification.class)
+
         );
 
         return notifications; // Returns the loaded list read by mapper

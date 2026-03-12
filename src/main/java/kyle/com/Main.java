@@ -5,20 +5,24 @@ import java.util.ArrayList;
 public class Main {
     public static void main(String[] args) throws Exception {
 
+        String filepath = "Logger.txt";
+
         // Dual Logger Composition
-        Logger logger = new DualLogger(new FileLogger("Logger.txt"), new ConsoleLogger());
+        Logger logger = new DualLogger(new FileLogger(filepath), new ConsoleLogger());
 
         // Notification kyle.com.Repository
         NotificationRepository repository = new NotificationRepository(new ArrayList<>());
 
+        // Notification Servicing
+        NotificationService service = new NotificationService(repository);
 
-        // Storage (Of NotificationStorage Variant)
+        // JSONStorage (Of NotificationStorage Variant)
         Storage<Notification> storage = new NotificationStorage(logger, "notifications.json");
 
 
 
         // Manager manages repository, logger, storage.
-        NotificationManager manager = new NotificationManager(repository,logger,storage);
+        NotificationManager manager = new NotificationManager(repository,service,logger,storage);
 
         logger.info("🚀 STARTING NOTIFICATION SYSTEM DEMO 🚀");
 
@@ -64,7 +68,8 @@ public class Main {
 
         logger.info("✅ All notifications saved to notifications.json");
 
-        // NOW: Run the program AGAIN - it will load existing notifications!
-        // The second run will show you loading works
+        manager.sendAllMessages();
+        manager.printStats();
+
     }
 }
