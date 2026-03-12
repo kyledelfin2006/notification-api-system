@@ -1,360 +1,336 @@
-# Notification Dispatch System
+#  Notification Dispatch System
 
 ![Java](https://img.shields.io/badge/Java-17+-orange?logo=openjdk)
+![Jackson](https://img.shields.io/badge/Jackson-2.15.2-blue)
 ![Status](https://img.shields.io/badge/status-active-success)
-![Design Patterns](https://img.shields.io/badge/patterns-Template%20Method%2C%20Strategy-blue)
 
-A robust console-based notification dispatch system implementing OOP principles with dual logging (console + file) and retry mechanisms for reliable message delivery.
+A Java-based notification dispatch system using core OOP principles including abstract classes, interfaces, composition, and design patterns such as Template Method, Strategy, Repository, and Composite. 
 
-##  Features
+---
 
-### Core Functionality
-- **Multi-channel notifications**: Email, SMS, Push notifications
-- **Dual logging system**: Console + File logging simultaneously
-- **Automatic retry mechanism**: 3 attempts with 1-second delays
-- **Delivery status tracking**: PENDING → SENT/FAILED with statistics
-- **Input validation**: Comprehensive field validation with detailed errors
-- **Graceful error handling**: Validation errors don't trigger retries
+## File Structure
 
-### Technical Highlights
-- **Template Method Pattern**: `Notification.process()` defines the complete workflow
-- **Strategy Pattern**: `Logger` interface with multiple implementations
-- **Dual Logger**: Combined `FileLogger` and `ConsoleLogger` in `DualLogger`
-- **Polymorphism**: Unified interface for different notification types
-- **File Persistence**: All logs saved to file with timestamps
-- **Status Management**: Real-time tracking with detailed statistics
+| File | Purpose |
+|------|---------|
+| `Main.java` | Entry point and demo orchestrator |
+| `Notification.java` | Abstract base class with template method pattern |
+| `EmailNotification.java` | Email notification implementation |
+| `SMSNotification.java` | SMS notification with phone number validation |
+| `PushNotification.java` | Push notification implementation |
+| `SystemNotification.java` | System-level notification implementation |
+| `NotificationManager.java` | Core business logic and coordination |
+| `NotificationRepository.java` | In-memory collection management |
+| `NotificationStorage.java` | JSON file persistence using Jackson |
+| `Logger.java` | Logging interface |
+| `ConsoleLogger.java` | Logs to standard output |
+| `FileLogger.java` | Logs to a timestamped file |
+| `DualLogger.java` | Composite logger (console + file simultaneously) |
+| `Repository.java` | Generic repository interface |
+| `Storage.java` | Generic storage interface |
+| `Sendable.java` | Interface for sendable notifications |
 
-## Quick Start
+---
 
 ### Prerequisites
-- Java 17 or higher
-- No external dependencies required
 
-### Installation & Compilation
+- Java 17+
+- [Jackson Databind 2.15.2](https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.15.2/)
+
+### Compile & Run
+
 ```bash
-# Compile all Java files
-javac *.java
-
-# Run the system
-java Main
+javac -cp ".:jackson-databind-2.15.2.jar" *.java
+java -cp ".:jackson-databind-2.15.2.jar" kyle.com.Main
 ```
+
+---
 
 ## Usage
 
-### Basic Setup
+### Setup
+
 ```java
-// Create dual logger (console + file)
 Logger logger = new DualLogger(
     new FileLogger("notifications.log"),
     new ConsoleLogger()
 );
 
-// Initialize manager
-NotificationManager manager = new NotificationManager(logger);
-
-// Create notifications
-EmailNotification email = new EmailNotification(
-    logger,
-    "John Doe",                    // Sender name
-    "john@example.com",           // Sender email
-    "boss@company.com",           // Receiver email
-    "Meeting at 3 PM"             // Message
-);
-
-SMSNotification sms = new SMSNotification(
-    logger,
-    "Jane Smith",                 // Sender name
-    "09123456789",               // Sender phone
-    "Your OTP is 123456",        // Message
-    "09987654321"                // Receiver phone
-);
-
-PushNotification push = new PushNotification(
-    logger,
-    "Netflix",                    // App/Sender name
-    "device-token-abc123",       // Device token
-    "New episode available!"      // Message
-);
-
-// Manage and send
-manager.addNotification(email);
-manager.addNotification(sms);
-manager.addNotification(push);
-
-manager.sendAllMessages();      // Process all notifications
-manager.printStats();           // Show success/failure rates
+NotificationRepository repository = new NotificationRepository(new ArrayList<>());
+Storage<Notification> storage = new NotificationStorage(logger, "notifications.json");
+NotificationManager manager = new NotificationManager(repository, logger, storage);
 ```
 
-### Log Output Examples
+### Creating Notifications
 
-**Console Output:**
+```java
+// Email
+EmailNotification email = new EmailNotification(
+    logger, "LeBron James", "lebron@gmail.com", "boss@yahoo.com", "Meeting tomorrow!"
+);
+
+// SMS (Philippine format — exactly 11 digits)
+SMSNotification sms = new SMSNotification(
+    logger, "Kobe Bryant", "09123456789", "09476384433", "Hello LBJ!"
+);
+
+// Push
+PushNotification push = new PushNotification(
+    logger, "Netflix", "device-abc-123", "New episode available!"
+);
+
+// System
+SystemNotification system = new SystemNotification(
+    logger, "System", "Android", "device-xyz-789", "Update available"
+);
+```
+
+### Managing Notifications
+
+```java
+manager.addNotification(email);       // Adds and auto-saves to JSON
+manager.sendMessage(email);           // Process a single notification
+manager.sendAllMessages();            // Process all pending notifications
+manager.printStats();                 // Print delivery statistics
+manager.deleteNotification(sms);      // Remove a notification
+manager.clearAllNotifications();      // Remove all notifications
+```
+
+---
+
+## Sample Output
+
+**Console**
 ```
 [INFO] 🚀 STARTING NOTIFICATION SYSTEM DEMO 🚀
-[INFO] === SCENARIO 1: Happy Path ===
-[INFO] Processing: Notification#0 [PENDING]
 [INFO] Adding of Notification#0 [PENDING] complete.
-[INFO] ✓ Validating EmailNotification...
-[INFO] Sending Email Notification: to boss@company.com:Meeting at 3 PM
-[INFO] Email from john@example.com to boss@company.com Message: Meeting at 3 PM
-[INFO] ✓ Logging delivery of notification
+[INFO] Sending Email Notification: to boss@yahoo.com: Meeting tomorrow!
 [INFO] Notification status: SENT
+[INFO] Successful messages: 1
+[INFO] Failed: 0
+[INFO] Total: 4
+[INFO] Success Rate: 100.0%
 ```
 
-**File Log (notifications.log):**
+**File Log (`notifications.log`)**
 ```
-Thu, Mar 20, 2025 14:30:45 | [INFO] | 🚀 STARTING NOTIFICATION SYSTEM DEMO 🚀
-Thu, Mar 20, 2025 14:30:45 | [INFO] | === SCENARIO 1: Happy Path ===
-Thu, Mar 20, 2025 14:30:45 | [INFO] | Processing: Notification#0 [PENDING]
+Sat, Mar 21, 2025 10:30:45 | [INFO] | 🚀 STARTING NOTIFICATION SYSTEM DEMO 🚀
+Sat, Mar 21, 2025 10:30:45 | [INFO] | Adding of Notification#0 [PENDING] complete.
+Sat, Mar 21, 2025 10:30:45 | [INFO] | Sending Email Notification: to boss@yahoo.com: Meeting tomorrow!
+Sat, Mar 21, 2025 10:30:45 | [INFO] | Notification status: SENT
 ```
 
-### Error Handling
+**JSON Storage (`notifications.json`)**
+```json
+[
+  {
+    "type": "email",
+    "sender": "LeBron James",
+    "message": "Meeting tomorrow!",
+    "status": "SENT",
+    "id": 0,
+    "senderEmail": "lebron@gmail.com",
+    "receiverEmail": "boss@yahoo.com"
+  },
+  {
+    "type": "sms",
+    "sender": "Kobe Bryant",
+    "message": "Hello LBJ!",
+    "status": "PENDING",
+    "id": 1,
+    "senderPhoneNumber": "09123456789",
+    "receiverPhoneNumber": "09476384433"
+  }
+]
+```
+
+---
+
+### Retry Logic (`Notification.java`)
+
 ```java
-try {
-    // Invalid phone number (not 11 digits)
-    SMSNotification invalidSMS = new SMSNotification(
-        logger, "Test", "123", "Invalid!", "456"
-    );
-} catch (IllegalArgumentException e) {
-    System.out.println("Gracefully caught: " + e.getMessage());
-    // Output: [ERROR] Phone number must be exactly 11 digits
+for (int attempt = 1; attempt <= getMaxRetryAttempts(); attempt++) {
+    try {
+        sendMessage();
+        displayNotification();
+        status = NotificationStatus.SENT;
+        break;
+    } catch (IllegalArgumentException e) {
+        status = NotificationStatus.FAILED; // No retry on validation errors
+        break;
+    } catch (Exception e) {
+        logger.warn("Processing failed. " + (getMaxRetryAttempts() - attempt) + " attempt(s) left.");
+    }
 }
 ```
+
+### Validation Rules
+
+| Notification Type | Rules |
+|-------------------|-------|
+| Email | Sender and receiver emails cannot be null or empty |
+| SMS | Phone numbers must be exactly 11 digits |
+| Push | Device token cannot be null or empty |
+| System | Device token and OS cannot be null or empty |
+| All | Sender name and message cannot be null or empty |
+
+### JSON Polymorphism
+
+```java
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = EmailNotification.class, name = "email"),
+    @JsonSubTypes.Type(value = SMSNotification.class, name = "sms"),
+    @JsonSubTypes.Type(value = PushNotification.class, name = "push"),
+    @JsonSubTypes.Type(value = SystemNotification.class, name = "system")
+})
+public abstract class Notification implements Sendable { ... }
+```
+
+---
 
 ## System Architecture
 
 ```
-┌─────────────┐
-│   Main.java │  ← Demo orchestrator
-└──────┬──────┘
-       │
-┌──────▼──────────────────┐
-│ NotificationManager.java│  ← Manages notification lifecycle
-└──────┬──────────────────┘
-       │
-┌──────▼───────────────┐
-│   Notification.java  │  ← Abstract base (Template Method Pattern)
-└──────┬───────────────┘
-       │
-       ├──────────────┬──────────────┬─────────────┐
-       │              │              │             │
-┌──────▼─────┐  ┌────▼──────┐  ┌────▼──────┐     │
-│   Email    │  │    SMS    │  │   Push    │     │
-│Notification│  │Notification│  │Notification│    │
-└────────────┘  └───────────┘  └───────────┘    │
-                                                │
-       ┌────────────────────────────────────────┘
-       │
-┌──────▼──────────┐    ┌──────────────────┐
-│   Sendable.java │    │   Logger.java    │
-│   (Interface)   │    │   (Interface)    │
-└─────────────────┘    └────────┬─────────┘
-                                │
-               ┌────────────────┼─────────────────┐
-               │                │                 │
-        ┌──────▼──────┐  ┌─────▼──────┐  ┌──────▼────────┐
-        │ Console     │  │   File     │  │    Dual       │
-        │ Logger      │  │   Logger   │  │    Logger     │
-        └─────────────┘  └────────────┘  └───────────────┘
+┌──────────────────────────────────────────────┐
+│                   Main.java                   │
+│                   (Demo)                      │
+└──────────────────────┬───────────────────────┘
+                       │
+                       ▼
+┌──────────────────────────────────────────────┐
+│            NotificationManager               │
+│  ┌────────────────────────────────────────┐  │
+│  │              Manages:                  │  │
+│  │  ┌──────────┐ ┌────────┐ ┌─────────┐  │  │
+│  │  │Repository│ │ Logger │ │ Storage │  │  │
+│  │  │(contains)│ │ (uses) │ │  (uses) │  │  │
+│  │  └──────────┘ └────────┘ └─────────┘  │  │
+│  └────────────────────────────────────────┘  │
+└──────────────────────┬───────────────────────┘
+                       │
+                       ▼
+┌──────────────────────────────────────────────┐
+│           Notification (abstract)            │
+│  ┌────────────────────────────────────────┐  │
+│  │  +processNotification()  [final]       │  │
+│  │  +sendMessage()          [abstract]    │  │
+│  │  +displayNotification()  [abstract]    │  │
+│  │  #validateField()                      │  │
+│  └────────────────────────────────────────┘  │
+│         │         │         │         │      │
+│         ▼         ▼         ▼         ▼      │
+│  ┌──────────┐ ┌───────┐ ┌──────┐ ┌────────┐ │
+│  │  Email   │ │  SMS  │ │ Push │ │ System │ │
+│  │Notif.    │ │Notif. │ │Notif.│ │ Notif. │ │
+│  └──────────┘ └───────┘ └──────┘ └────────┘ │
+└──────────────────────┬───────────────────────┘
+                       │
+          ┌────────────┴────────────┐
+          ▼                         ▼
+┌──────────────────┐     ┌──────────────────┐
+│ Logger           │     │ Sendable         │
+│ (interface)      │     │ (interface)      │
+│ +info()          │     │ +sendMessage()   │
+│ +error()         │     └──────────────────┘
+│ +debug()         │
+│ +warn()          │
+└────────┬─────────┘
+         │
+   ┌─────┼─────┐
+   ▼     ▼     ▼
+┌───────┐ ┌───────┐ ┌───────┐
+│Console│ │ File  │ │ Dual  │
+│Logger │ │Logger │ │Logger │
+└───────┘ └───────┘ └───────┘
 ```
-
-## File Descriptions
-
-| File | Purpose |
-|------|---------|
-| `Main.java` | Demo application with scenarios |
-| `Notification.java` | Abstract base class with template method |
-| `EmailNotification.java` | Email notification implementation |
-| `SMSNotification.java` | SMS with phone validation |
-| `PushNotification.java` | Push notification implementation |
-| `NotificationManager.java` | Manages notifications and statistics |
-| `Logger.java` | Logger interface |
-| `ConsoleLogger.java` | Logs to console |
-| `FileLogger.java` | Logs to file with timestamps |
-| `DualLogger.java` | Combines console and file logging |
-| `Sendable.java` | Interface for sendable objects |
-
-##  Key Design Patterns
-
-### 1. Template Method Pattern (`Notification.java`)
-```java
-public final void process() {
-    // Fixed workflow
-    validateNotification();
-    sendMessage();      // Abstract - implemented by subclasses
-    displayNotification(); // Abstract - implemented by subclasses
-    logDelivery();
-}
-```
-
-### 2. Strategy Pattern (`Logger.java`)
-```java
-public interface Logger {
-    void info(String message);
-    void error(String message);
-    void debug(String message);
-    void warn(String message);
-}
-```
-
-### 3. Decorator-like Pattern (`DualLogger.java`)
-```java
-// Combines two loggers
-public class DualLogger implements Logger {
-    public void info(String message) {
-        fileLogger.info(message);
-        consoleLogger.info(message);
-    }
-}
-```
-
-## Technical Implementation Details
-
-### Retry Mechanism
-- **3 maximum attempts** for transient failures
-- **1-second delay** between retries
-- **Validation errors** don't retry (fail immediately)
-- **Network/timeout errors** trigger retry logic
-
-### Validation Rules
-- **Email**: Sender/Receiver cannot be empty
-- **SMS**: Phone numbers must be exactly 11 digits
-- **Push**: Device token cannot be empty
-- **All**: Message content cannot be empty
-
-### Statistics Tracking
-- Success/failure counters
-- Success rate percentage
-- Detailed delivery status per notification
-- PENDING state detection
-
-### Log Formatting
-**Console**: `[LEVEL] message`  
-**File**: `Timestamp | [LEVEL] | message`
-
-## 💡 Example Scenarios
-
-### Scenario 1: Happy Path (All Successful)
-```java
-manager.addNotification(email);
-manager.addNotification(sms);
-manager.addNotification(push);
-manager.sendAllMessages();
-manager.printStats();
-
-// Output:
-// Successful messages : 3
-// Failed: 0
-// Total: 3
-// Success Rate: 100.0%
-```
-
-### Scenario 2: Error Handling
-```java
-// Invalid phone format triggers immediate failure
-SMSNotification invalid = new SMSNotification(logger, "Test", "123", "Hi", "456");
-// Throws: IllegalArgumentException with message about 11-digit requirement
-```
-
-### Scenario 3: Mixed Results
-```java
-// Simulates some successes and some failures
-// Manager tracks both and calculates accurate statistics
-```
-
-##  Statistics Output
-
-After processing all notifications:
-```
-[INFO] Successful messages : 2
-[INFO] Failed: 1
-[INFO] Total: 3
-[INFO] Success Rate: 66.7%
-```
-
-## Workflow
-
-1. **Create Notification** → Validation occurs in constructor
-2. **Add to Manager** → Added to internal list
-3. **Process** → Template method executes:
-   - Validation
-   - Send attempt (with retries)
-   - Display
-   - Logging
-4. **Update Status** → SENT or FAILED
-5. **Track Statistics** → Count successes/failures
-
-## Running the Demo
-
-The `Main.java` includes two built-in scenarios:
-
-1. **Happy Path**: Three valid notifications of different types
-2. **Error Handling**: Demonstrates graceful validation failure
-
-To run:
-```bash
-javac *.java
-java Main
-```
-
-## Testing Your Own Notifications
-
-```java
-public class TestYourOwn {
-    public static void main(String[] args) {
-        Logger logger = new DualLogger(
-            new FileLogger("my-test.log"),
-            new ConsoleLogger()
-        );
-        
-        NotificationManager mgr = new NotificationManager(logger);
-        
-        // Test your notifications here
-        EmailNotification testEmail = new EmailNotification(
-            logger, "You", "you@test.com", "friend@test.com", "Hello!"
-        );
-        
-        mgr.addNotification(testEmail);
-        mgr.sendAllMessages();
-        mgr.printStats();
-    }
-}
-```
-
-## Notes
-
-- **File Path**: Update `FileLogger` path in `Main.java` for your system
-- **Phone Format**: Philippine format (11 digits) used in SMS validation
-- **Thread Safety**: Basic retry uses `Thread.sleep()`
-- **Extensibility**: Easy to add new notification types or loggers
-
-## Potential Enhancements
-
-1. **Database Integration**: Store notifications persistently
-2. **Priority System**: High/Medium/Low priority notifications
-3. **Scheduling**: Send at specific times
-4. **Rate Limiting**: Prevent too many notifications
-5. **Template System**: Reusable message templates
-6. **Web Interface**: REST API for remote management
-7. **Multiple Languages**: Localized notification messages
-8. **Attachment Support**: For email notifications
-
-## Contributing
-
-Feel free to fork and extend this system! Some ideas:
-- Add Slack/Teams notifications
-- Implement database logging
-- Create a GUI interface
-- Add unit tests
-- Implement notification templates
-
-## License
-
-This project is open source and available for educational use.
 
 ---
 
-**Author**: Kyle, aldrinkyles@1219@gmail.com
-**Project Type**: Educational - OOP Design Patterns Demonstration - Interfaces
-**Focus**: Clean architecture, design patterns, robust error handling
+## Design Patterns Used
 
-* Thank you for reading! This project is used as a stepping stone into something great (hopefully ✌🏻) *
+| Pattern | Where |
+|---------|-------|
+| Template Method | `Notification.processNotification()` defines the fixed workflow |
+| Strategy | Pluggable `Logger` implementations |
+| Repository | `NotificationRepository` manages the collection |
+| Composite | `DualLogger` delegates to multiple loggers |
+
+---
+
+## Error Handling
+
+```java
+// Example: invalid SMS phone number
+try {
+    SMSNotification invalid = new SMSNotification(
+        logger, "Test", "123", "456", "Hello"
+    );
+} catch (IllegalArgumentException e) {
+    // Output: [ERROR] Phone number must be exactly 11 digits
+}
+```
+
+---
+
+## Statistics
+
+```java
+manager.sendAllMessages();
+manager.printStats();
+// [INFO] Successful messages: 3
+// [INFO] Failed: 1
+// [INFO] Total: 4
+// [INFO] Success Rate: 75.0%
+```
+
+---
+
+##  Notes
+
+| Topic | Detail |
+|-------|--------|
+| File paths | Update `Logger.txt` and `notifications.json` paths as needed |
+| SMS format | Validates Philippine format (11 digits) — update regex for other regions |
+| JSON library | Requires Jackson Databind 2.15.2+ |
+| Thread safety | Not thread-safe — single-threaded use only |
+| ID generation | Static counter resets on JVM restart; IDs may not be unique across sessions |
+| Run behavior | First run creates `notifications.json`; subsequent runs load from it |
+
+---
+
+##  Possible Enhancements
+
+| Possible Enhancements |
+| | Replace JSON file storage with a proper database |
+| Add unit tests with mocking (e.g., JUnit + Mockito) |
+| Notification templates with placeholders |
+| Priority queues for urgent notifications |
+| Batch processing and rate limiting |
+| Webhook support for external integrations |
+| Scheduled delivery (time-based sending) |
+| International phone number validation library |
+
+---
+
+## Requirements
+
+- Java 17+
+- Jackson Databind 2.15.2+
+- Write permissions for `notifications.log` and `notifications.json`
+
+---
+
+## Developer Learning Objectives
+
+This project demonstrates the following OOP and Java concepts:
+
+**Object-Oriented Principles** — interface-based design, abstract classes with template methods, composition over inheritance, polymorphism and dynamic dispatch.
+
+**Design Patterns** — Template Method, Strategy, Repository, and Composite.
+
+**Technicals** — JSON serialization with polymorphism, exception handling and input validation, file I/O, generic programming, and the Java Collections Framework.
+
+---
+
+*Author: Kyle | Purpose: OOP principles, SOLID and design patterns in Java*
+```
