@@ -58,7 +58,8 @@ Logger logger = new DualLogger(
 
 NotificationRepository repository = new NotificationRepository(new ArrayList<>());
 Storage<Notification> storage = new NotificationStorage(logger, "notifications.json");
-NotificationManager manager = new NotificationManager(repository, logger, storage);
+NotificationService service = new NotificationService(repository);
+NotificationManager manager = new NotificationManager(repository,service,logger,storage);
 ```
 
 ### Creating Notifications
