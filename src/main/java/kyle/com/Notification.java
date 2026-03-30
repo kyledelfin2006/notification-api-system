@@ -19,8 +19,7 @@ public abstract class Notification implements Sendable{
     private static int nextId = 0;
     private final int id;
     protected final Logger logger;
-    private static final int MAX_RETRY_ATTEMPTS = 3;
-    private static final int RETRY_DELAY_MS = 1000;
+    private static final int MAX_RETRY_ATTEMPTS = 3; // Max attempts allowed to process
     protected enum NotificationStatus {
         PENDING,
         SENT,
@@ -40,11 +39,7 @@ public abstract class Notification implements Sendable{
 
     }
 
-    public NotificationStatus getStatus() {
-        return status;
-    }
-
-    public abstract void displayNotification();
+    public abstract void displayNotification(); // Sub-Class Implementation only.
 
     // All subtypes can use validateField
     protected void validateField(String value, String fieldName) {
@@ -75,17 +70,24 @@ public abstract class Notification implements Sendable{
 
             }  catch (Exception e) {
                int attemptsLeft = getMaxRetryAttempts() - attempt;
-                status = NotificationStatus.FAILED;
+                status = NotificationStatus.PENDING;
              logger.warn("Processing of message failed. " + attemptsLeft + " attempt(s) left. ");
             }
+        }
+
+        if (status == NotificationStatus.PENDING) { // Set to .FAILED if all attempts were used, and still in .PENDING
+            status = NotificationStatus.FAILED;
+            logger.error("Notification #" + getID() + " failed after " + getMaxRetryAttempts() + " attempts");
         }
 
     }
 
 
-
     public String toString() {
         return "Notification#" + id + " [" + status + "]";
+    }
+    public NotificationStatus getStatus() {
+        return status;
     }
     public String getSender(){
         return sender;

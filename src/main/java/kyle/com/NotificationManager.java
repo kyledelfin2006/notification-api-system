@@ -23,7 +23,6 @@ public class NotificationManager {
     private void loadFromStorage() {
         try {
             List<Notification> loaded = storage.load(); // Loads storage into loadedList
-
             repository.addAll(loaded); // Add to the repo
             logger.info("Loaded " + loaded.size() + " notifications from storage");
         } catch (IOException e) {
