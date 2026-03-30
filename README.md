@@ -21,6 +21,7 @@ A Java-based notification dispatch system using core OOP principles including ab
 | `NotificationManager.java` | Core business logic and coordination |
 | `NotificationRepository.java` | In-memory collection management |
 | `NotificationStorage.java` | JSON file persistence using Jackson |
+| `NotificationService.java` | Filtering service for Notifications |
 | `Logger.java` | Logging interface |
 | `ConsoleLogger.java` | Logs to standard output |
 | `FileLogger.java` | Logs to a timestamped file |
@@ -57,7 +58,8 @@ Logger logger = new DualLogger(
 
 NotificationRepository repository = new NotificationRepository(new ArrayList<>());
 Storage<Notification> storage = new NotificationStorage(logger, "notifications.json");
-NotificationManager manager = new NotificationManager(repository, logger, storage);
+NotificationService service = new NotificationService(repository);
+NotificationManager manager = new NotificationManager(repository,service,logger,storage);
 ```
 
 ### Creating Notifications
