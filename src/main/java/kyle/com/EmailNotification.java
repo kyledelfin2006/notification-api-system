@@ -14,8 +14,8 @@ public class EmailNotification extends Notification {
     // Constructor
     public EmailNotification(Logger logger, String sender, String senderEmail, String receiverEmail, String message) {
         super(sender, message, logger); // calls abstract class constructor
-        validateField(receiverEmail, "Receiver Email ");
-        validateField(senderEmail,"Sender Email ");
+        validateEmail(receiverEmail, "Receiver Email");
+        validateEmail(senderEmail,"Sender Email");
 
         this.senderEmail = senderEmail;
         this.receiverEmail = receiverEmail;
@@ -31,4 +31,18 @@ public class EmailNotification extends Notification {
     public void sendMessage() {
         logger.info("Sending Email Notification: " + " to " + getReceiverEmail() + ":" + getMessage() + "\n");
     }
+
+    private void validateEmail(String email, String fieldName) {
+        validateField(email, fieldName);  // First check not empty/null
+
+        // Check email format (basic validation)
+        if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            throw new IllegalArgumentException(
+                    fieldName + " must be a valid email address: " + email
+            );
+        }
+    }
+
+
+
 }

@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = kyle.com.EmailNotification.class, name = "email"),
         @JsonSubTypes.Type(value = kyle.com.SMSNotification.class, name = "sms"),
-        @JsonSubTypes.Type(value = PushNotification.class, name = "push"),
+        @JsonSubTypes.Type(value = kyle.com.PushNotification.class, name = "push"),
         @JsonSubTypes.Type(value = kyle.com.SystemNotification.class, name = "system")
 })
 
