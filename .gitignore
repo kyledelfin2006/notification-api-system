@@ -36,7 +36,11 @@ build/
 .vscode/
 
 ### Mac OS ###
-.DS_StoreLogger.txt
-notifications.json
+.DS_Store
+
+### Application Log and Data Files ###
 Logger.txt
 notifications.json
+notificationList.txt
+notificationStorage.txt
+*.log
