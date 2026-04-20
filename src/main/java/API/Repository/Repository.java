@@ -1,6 +1,5 @@
 package API.Repository;
 
-import API.Model.Notification;
 
 import java.util.List;
 
