@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class NotificationManager {
 
@@ -16,8 +17,8 @@ public class NotificationManager {
     private final Storage<Notification> storage;
     private final NotificationService service;
 
-    private static int successfulDeliveries = 0; // Stats Counter
-    private static int failedDeliveries = 0; // Stats Counter
+    private AtomicInteger successfulDeliveries = new AtomicInteger(0); // Stats Counter
+    private AtomicInteger failedDeliveries = new AtomicInteger(0); // Stats Counter
 
     // Manages in-memory repository and coordinates file storage, printing, and sending
     public NotificationManager(Logger logger, Repository<Notification> repository, Storage<Notification> storage, NotificationService service) {
@@ -104,48 +105,50 @@ public class NotificationManager {
 
     // Sends all Notifications
     public void sendAllMessages() {
-        int previousSuccess = successfulDeliveries;
-        int previousFailed = failedDeliveries;
+        // Get current values before resetting
+        int previousSuccess = successfulDeliveries.get();
+        int previousFailed = failedDeliveries.get();
 
-        // Reset every call to avoid doubling.
-        successfulDeliveries = 0;
-        failedDeliveries = 0;
+        // Reset counters for this batch
+        successfulDeliveries.set(0);
+        failedDeliveries.set(0);
+
+        // Set Batch Counters
+        int batchSuccess = 0;
+        int batchFailed = 0;
 
         for (Notification notification : repository.getAll()) {
             try {
                 notification.processNotification();
                 switch (notification.getStatus()) {
                     case SENT -> {
-                        successfulDeliveries++;
-                        logger.info("Notification: " + notification.getID() + " successfully sent. ");
+                        successfulDeliveries.incrementAndGet();
+                        batchSuccess++;
+                        logger.info("Notification: " + notification.getID() + " successfully sent.");
                     }
-                    case FAILED -> {
-                        failedDeliveries++;
-                        logger.error("Notification: " + notification.getID() + " failed to be sent. ");
-                    }
-                    case PENDING -> {
-                        failedDeliveries++;
-                        logger.warn("Notification: " + notification.getID() + " stuck in pending. ");
+                    case FAILED, PENDING -> {
+                        failedDeliveries.incrementAndGet();
+                        batchFailed++;
+                        logger.error("Notification: " + notification.getID() + " failed to be sent.");
                     }
                 }
                 saveToStorage();
             } catch (Exception e) {
-                failedDeliveries++;
+                failedDeliveries.incrementAndGet();
+                batchFailed++;
                 logger.error("Failed to process " +
                         notification.getClass().getSimpleName() + ": " + e.getMessage());
-                saveToStorage(); // Save failed state even on exception.
+                saveToStorage();
             }
         }
 
-        // Use the previous values for logging cumulative stats
+        // Log with correct values
         logger.info(String.format("Batch completed - This batch: Success=%d, Failed=%d | Cumulative: Success=%d, Failed=%d",
-                successfulDeliveries, failedDeliveries,
-                previousSuccess + successfulDeliveries, previousFailed + failedDeliveries));
-
-        if (service.hasFailedNotifications()) {
-            logger.warn("There were failures in this Notification batch");
-        }
+                batchSuccess, batchFailed,
+                previousSuccess + batchSuccess, previousFailed + batchFailed));
     }
+
+
     public void clearAllNotifications(){
 
         logger.info("Clearing Notifications. ");
@@ -158,12 +161,12 @@ public class NotificationManager {
     public Map<String, Object> getDeliveryStatistics() {
         Map<String, Object> stats = new HashMap<>();
         stats.put("total", repository.getAll().size());
-        stats.put("successful", successfulDeliveries);
-        stats.put("failed", failedDeliveries);
+        stats.put("successful", successfulDeliveries.get());  // Use .get()
+        stats.put("failed", failedDeliveries.get());          // Use .get()
 
-        int total = successfulDeliveries + failedDeliveries;
+        int total = successfulDeliveries.get() + failedDeliveries.get();
         if (total > 0) {
-            stats.put("successRate", (successfulDeliveries * 100.0) / total);
+            stats.put("successRate", (successfulDeliveries.get() * 100.0) / total);
         } else {
             stats.put("successRate", null);
         }
@@ -183,20 +186,20 @@ public class NotificationManager {
         return logger;
     }
 
-    public static int getSuccessfulDeliveries() {
-        return successfulDeliveries;
+    public int getSuccessfulDeliveries() {
+        return successfulDeliveries.get();
     }
 
-    public static void setSuccessfulDeliveries(int successfulDeliveries) {
-        NotificationManager.successfulDeliveries = successfulDeliveries;
+    public void setSuccessfulDeliveries(int value) {
+        successfulDeliveries.set(value);
     }
 
-    public static int getFailedDeliveries() {
-        return failedDeliveries;
+    public int getFailedDeliveries() {
+        return failedDeliveries.get();
     }
 
-    public static void setFailedDeliveries(int failedDeliveries) {
-        NotificationManager.failedDeliveries = failedDeliveries;
+    public void setFailedDeliveries(int value) {
+        failedDeliveries.set(value);
     }
 
 }
