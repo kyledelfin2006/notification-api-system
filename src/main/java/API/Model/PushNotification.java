@@ -1,4 +1,8 @@
-package kyle.com;
+package API.Model;
+
+import API.Logger.Logger;
+import API.Model.Notification;
+
 public class PushNotification extends Notification {
 
     private final String deviceToken;

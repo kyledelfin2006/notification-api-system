@@ -1,11 +1,15 @@
-package kyle.com;
+package API.Model;
+
+import API.Logger.Logger;
+import API.Model.Notification;
+
 public class SMSNotification extends Notification {
 
     private final String receiverPhoneNumber;
     private final String senderPhoneNumber;
 
     // Constructor
-    public SMSNotification(kyle.com.Logger logger, String sender, String senderPhoneNumber, String receiverPhoneNumber, String message) {
+    public SMSNotification(Logger logger, String sender, String senderPhoneNumber, String receiverPhoneNumber, String message) {
         super(sender, message,logger); // calls abstract class constructor
         validatePhoneNumber(receiverPhoneNumber);
         validatePhoneNumber(senderPhoneNumber);

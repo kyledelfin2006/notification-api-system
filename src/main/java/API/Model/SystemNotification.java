@@ -1,11 +1,15 @@
-package kyle.com;
-public class SystemNotification extends Notification{
+package API.Model;
+
+import API.Logger.Logger;
+import API.Model.Notification;
+
+public class SystemNotification extends Notification {
 
     private final String deviceOS;
     private final String deviceToken;
 
 
-    public SystemNotification(Logger logger, String sender,String deviceOS,String deviceToken, String message) {
+    public SystemNotification(Logger logger, String sender, String deviceOS, String deviceToken, String message) {
         super(sender, message,logger); // calls abstract class constructor
         validateField(deviceToken, "Device Token");
         validateField(deviceOS, "DeviceOS");
@@ -22,7 +26,7 @@ public class SystemNotification extends Notification{
 
     @Override
     public void sendMessage() {
-        logger.info("Sending System Notification to: " + getDeviceOS() + " Message: " + getMessage());
+        logger.info("Sending System Notification to: " + getDeviceOS() + " Message:ss " + getMessage());
     }
 
 

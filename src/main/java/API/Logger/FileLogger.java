@@ -1,4 +1,4 @@
-package kyle.com;
+package API.Logger;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;

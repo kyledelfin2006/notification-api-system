@@ -1,7 +1,10 @@
-package kyle.com;
+package API.Storage;
 
+import API.Logger.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import API.Model.Notification;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,14 +48,12 @@ public class NotificationStorage implements Storage<Notification> {
             return new ArrayList<>();
         }
 
-        List<Notification> notifications = mapper.readValue(
+        return mapper.readValue(
                 // Jackson reads the JSON, looks at the "type" field, and creates the right subclass
                 filePath,                                                   //sms,push,email,system
                 mapper.getTypeFactory().constructCollectionType(List.class, Notification.class)
 
-        );
-
-        return notifications; // Returns the loaded list read by mapper
+        ); // Returns the loaded list read by mapper
     }
 
     public Logger getLogger() {

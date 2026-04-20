@@ -1,4 +1,5 @@
-package kyle.com;
+package API.Logger;
+
 public class ConsoleLogger implements Logger {
 
 

@@ -1,23 +1,28 @@
-package kyle.com;
+package API.Service;
+
+import API.Model.Notification;
+import API.Model.Notification.*;
+import API.Repository.Repository;
+
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class NotificationService {
-    private final NotificationRepository repository;
+    private final Repository<Notification> repository;
 
 
     // Class Function : Filtering service
-    public NotificationService(NotificationRepository repository) {
+    public NotificationService(Repository<Notification> repository) {
         this.repository = repository;
     }
 
-    public List<Notification> returnFailedNotifications(){
+    public List<Notification> getFailedNotifications(){
 
         List<Notification> failedNotifications = new ArrayList<>();
 
         for (Notification notification : repository.getAll()){
-            if (notification.getStatus() == Notification.NotificationStatus.FAILED){
+            if (notification.getStatus() == NotificationStatus.FAILED){
                 failedNotifications.add(notification);
             }
         }
@@ -29,27 +34,22 @@ public class NotificationService {
         List<Notification> pendingNotifications = new ArrayList<>();
 
         for (Notification notification : repository.getAll()){
-            if (notification.getStatus() == Notification.NotificationStatus.PENDING){
+            if (notification.getStatus() == NotificationStatus.PENDING){
                 pendingNotifications.add(notification);
             }
         }
         return pendingNotifications;
     }
 
-    public long countSentNotifications() {
-        long sentNotifications = 0;
-
-        for (Notification notification : repository.getAll()){
-            if (notification.getStatus() == Notification.NotificationStatus.SENT){
-                sentNotifications++;
-            }
-        }
-        return sentNotifications;
+    public long getSentNotificationCount() {
+        return repository.getAll().stream()
+                .filter(n -> n.getStatus() == NotificationStatus.SENT)
+                .count();
     }
 
     public boolean hasFailedNotifications() {
         return repository.getAll().stream().
-                anyMatch(notification -> notification.getStatus() == Notification.NotificationStatus.FAILED);
+                anyMatch(notification -> notification.getStatus() == NotificationStatus.FAILED);
     }
 
 

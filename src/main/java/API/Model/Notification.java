@@ -1,26 +1,27 @@
-package kyle.com;
+package API.Model;
+import API.Logger.Logger;
+import API.Util.NotificationIDGenerator;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = kyle.com.EmailNotification.class, name = "email"),
-        @JsonSubTypes.Type(value = kyle.com.SMSNotification.class, name = "sms"),
-        @JsonSubTypes.Type(value = kyle.com.PushNotification.class, name = "push"),
-        @JsonSubTypes.Type(value = kyle.com.SystemNotification.class, name = "system")
+        @JsonSubTypes.Type(value = EmailNotification.class, name = "email"),
+        @JsonSubTypes.Type(value = SMSNotification.class, name = "sms"),
+        @JsonSubTypes.Type(value = PushNotification.class, name = "push"),
+        @JsonSubTypes.Type(value = SystemNotification.class, name = "system")
 })
 
 
-public abstract class Notification implements Sendable{
+public abstract class Notification implements Sendable {
 
     private NotificationStatus status;
     private final String sender;
     private final String message;
-    private static int nextId = 0;
     private final int id;
     protected final Logger logger;
     private static final int MAX_RETRY_ATTEMPTS = 3; // Max attempts allowed to process
-    protected enum NotificationStatus {
+    public enum NotificationStatus {
         PENDING,
         SENT,
         FAILED
@@ -32,7 +33,7 @@ public abstract class Notification implements Sendable{
         validateField(message, "Message");
 
         this.logger = logger;
-        this.id = nextId++;
+        this.id = NotificationIDGenerator.generateNextID();
         this.sender = sender;
         this.message = message;
         this.status = NotificationStatus.PENDING;
@@ -63,15 +64,15 @@ public abstract class Notification implements Sendable{
                 logger.info("==========  Notification Process Complete ==========");
                 break;
 
-              } catch (IllegalArgumentException e){
+            } catch (IllegalArgumentException e){
                 logger.error("Validation error (won't retry): " + e.getMessage());
                 status = NotificationStatus.FAILED;
                 break;
 
             }  catch (Exception e) {
-               int attemptsLeft = getMaxRetryAttempts() - attempt;
+                int attemptsLeft = getMaxRetryAttempts() - attempt;
                 status = NotificationStatus.PENDING;
-             logger.warn("Processing of message failed. " + attemptsLeft + " attempt(s) left. ");
+                logger.warn("Processing of message failed. " + attemptsLeft + " attempt(s) left. ");
             }
         }
 

@@ -1,5 +1,8 @@
 package kyle.com;
 
+import API.Logger.ConsoleLogger;
+import API.Logger.Logger;
+import API.Model.EmailNotification;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
