@@ -1,52 +1,89 @@
 package API.Model;
 
 import API.Logger.Logger;
-import API.Model.Notification;
 
 public class EmailNotification extends Notification {
 
     private final String senderEmail;
     private final String receiverEmail;
 
-    public String getReceiverEmail() {
-        return receiverEmail;
+    public EmailNotification(Logger logger, String sender, String senderEmail,
+                             String receiverEmail, String message) {
+        super(sender, message, logger);
+
+        // Validate and store trimmed emails
+        this.senderEmail = validateAndTrimEmail(senderEmail, "Sender Email");
+        this.receiverEmail = validateAndTrimEmail(receiverEmail, "Receiver Email");
     }
-    public String getSenderEmail(){
-        return senderEmail;
+
+    private String validateAndTrimEmail(String email, String fieldName) {
+        // Check for null
+        if (email == null) {
+            String errorMsg = fieldName + " cannot be null";
+            logger.error(errorMsg);
+            throw new IllegalArgumentException(errorMsg);
+        }
+
+        // Trim whitespace
+        String trimmed = email.trim();
+
+        // Check for empty after trimming
+        if (trimmed.isEmpty()) {
+            String errorMsg = fieldName + " cannot be empty";
+            logger.error(errorMsg);
+            throw new IllegalArgumentException(errorMsg);
+        }
+
+        // Validate email format (basic but comprehensive)
+        if (!isValidEmail(trimmed)) {
+            String errorMsg = fieldName + " must be a valid email address: " + trimmed;
+            logger.error(errorMsg);
+            throw new IllegalArgumentException(errorMsg);
+        }
+
+        return trimmed;
     }
 
-    // Constructor
-    public EmailNotification(Logger logger, String sender, String senderEmail, String receiverEmail, String message) {
-        super(sender, message, logger); // calls abstract class constructor
-        validateEmail(receiverEmail, "Receiver Email");
-        validateEmail(senderEmail,"Sender Email");
+    private boolean isValidEmail(String email) {
+        // Basic email regex that handles most valid cases
+        // Allows: local-part@domain.tld
+        // Prevents: consecutive dots, leading/trailing dots, invalid characters
+        String emailRegex = "^[\\p{L}\\p{N}+_.-]+@[\\p{L}\\p{N}.-]+\\.[\\p{L}]{2,}$";
 
-        this.senderEmail = senderEmail;
-        this.receiverEmail = receiverEmail;
+        if (!email.matches(emailRegex)) {
+            return false;
+        }
 
+        // Additional checks for consecutive dots
+        String localPart = email.substring(0, email.indexOf('@'));
+        if (localPart.contains("..") || localPart.startsWith(".") || localPart.endsWith(".")) {
+            return false;
+        }
+
+        String domain = email.substring(email.indexOf('@') + 1);
+        if (domain.contains("..") || domain.startsWith(".") || domain.endsWith(".")) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override
     public void displayNotification() {
-        logger.info("Email from " + getSenderEmail() + " to " + getReceiverEmail() + " Message: " + getMessage());
+        logger.info("Email from " + getSenderEmail() + " to " + getReceiverEmail() +
+                ": " + getMessage());
     }
 
     @Override
     public void sendMessage() {
-        logger.info("Sending Email Notification: " + " to " + getReceiverEmail() + ":" + getMessage() + "\n");
+        logger.info("Sending Email Notification to " + getReceiverEmail() + ": " + getMessage());
     }
 
-    private void validateEmail(String email, String fieldName) {
-        validateField(email, fieldName);  // First check not empty/null
-
-        // Check email format (basic validation)
-        if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-            throw new IllegalArgumentException(
-                    fieldName + " must be a valid email address: " + email
-            );
-        }
+    public String getSenderEmail() {
+        return senderEmail;
     }
 
-
-
+    public String getReceiverEmail() {
+        return receiverEmail;
+    }
 }

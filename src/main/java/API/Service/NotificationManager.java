@@ -103,8 +103,11 @@ public class NotificationManager {
     }
 
     // Sends all Notifications
-    public void sendAllMessages(){
-       // Reset every call to avoid doubling.
+    public void sendAllMessages() {
+        int previousSuccess = successfulDeliveries;
+        int previousFailed = failedDeliveries;
+
+        // Reset every call to avoid doubling.
         successfulDeliveries = 0;
         failedDeliveries = 0;
 
@@ -112,41 +115,37 @@ public class NotificationManager {
             try {
                 notification.processNotification();
                 switch (notification.getStatus()) {
-
-
                     case SENT -> {
                         successfulDeliveries++;
                         logger.info("Notification: " + notification.getID() + " successfully sent. ");
                     }
-
                     case FAILED -> {
                         failedDeliveries++;
                         logger.error("Notification: " + notification.getID() + " failed to be sent. ");
                     }
-
-
                     case PENDING -> {
                         failedDeliveries++;
                         logger.warn("Notification: " + notification.getID() + " stuck in pending. ");
                     }
-
                 }
-
                 saveToStorage();
-
             } catch (Exception e) {
+                failedDeliveries++;
                 logger.error("Failed to process " +
                         notification.getClass().getSimpleName() + ": " + e.getMessage());
                 saveToStorage(); // Save failed state even on exception.
             }
         }
 
-        if (service.hasFailedNotifications()){
-            logger.warn("There were failures in this Notification batch ");
+        // Use the previous values for logging cumulative stats
+        logger.info(String.format("Batch completed - This batch: Success=%d, Failed=%d | Cumulative: Success=%d, Failed=%d",
+                successfulDeliveries, failedDeliveries,
+                previousSuccess + successfulDeliveries, previousFailed + failedDeliveries));
+
+        if (service.hasFailedNotifications()) {
+            logger.warn("There were failures in this Notification batch");
         }
-
     }
-
     public void clearAllNotifications(){
 
         logger.info("Clearing Notifications. ");
