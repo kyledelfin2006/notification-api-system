@@ -9,7 +9,6 @@ public class PushNotifDTO extends NotificationDTO {
     public String getDeviceToken() {
         return deviceToken;
     }
-
     public void setDeviceToken(String deviceToken) {
         this.deviceToken = deviceToken;
     }

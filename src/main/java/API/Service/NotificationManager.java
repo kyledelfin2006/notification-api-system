@@ -4,6 +4,8 @@ import API.Logger.Logger;
 import API.Model.Notification;
 import API.Repository.Repository;
 import API.Storage.Storage;
+import API.Util.NotificationIDGenerator;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +35,8 @@ public class NotificationManager {
     private void loadFromStorage() {
         try {
             List<Notification> loaded = storage.load();  // Load once, store in variable
+            int maxId = loaded.stream().mapToInt(Notification::getID).max().orElse(-1);
+            NotificationIDGenerator.setNextId(maxId + 1);
             repository.addAll(loaded);
             logger.info("Loaded " + loaded.size() + " notifications from storage");
         } catch (IOException e) {
@@ -105,13 +109,6 @@ public class NotificationManager {
 
     // Sends all Notifications
     public void sendAllMessages() {
-        // Get current values before resetting
-        int previousSuccess = successfulDeliveries.get();
-        int previousFailed = failedDeliveries.get();
-
-        // Reset counters for this batch
-        successfulDeliveries.set(0);
-        failedDeliveries.set(0);
 
         // Set Batch Counters
         int batchSuccess = 0;
@@ -126,7 +123,7 @@ public class NotificationManager {
                         batchSuccess++;
                         logger.info("Notification: " + notification.getID() + " successfully sent.");
                     }
-                    case FAILED, PENDING -> {
+                    case FAILED -> {
                         failedDeliveries.incrementAndGet();
                         batchFailed++;
                         logger.error("Notification: " + notification.getID() + " failed to be sent.");
@@ -142,10 +139,7 @@ public class NotificationManager {
             }
         }
 
-        // Log with correct values
-        logger.info(String.format("Batch completed - This batch: Success=%d, Failed=%d | Cumulative: Success=%d, Failed=%d",
-                batchSuccess, batchFailed,
-                previousSuccess + batchSuccess, previousFailed + batchFailed));
+        logger.info(String.format("| Batch completed - Success=%d, Failed=%d |  ",batchSuccess,batchFailed));
     }
 
 

@@ -7,19 +7,15 @@ public class SystemNotificationDTO extends NotificationDTO {
 
     public SystemNotificationDTO(){}
 
-
     public String getDeviceOS() {
         return deviceOS;
     }
-
     public void setDeviceOS(String deviceOS) {
         this.deviceOS = deviceOS;
     }
-
     public String getDeviceToken() {
         return deviceToken;
     }
-
     public void setDeviceToken(String deviceToken) {
         this.deviceToken = deviceToken;
     }

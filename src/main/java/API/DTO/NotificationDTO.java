@@ -1,6 +1,6 @@
 package API.DTO;
 
-public class NotificationDTO {
+public abstract class NotificationDTO {
     private  String sender;
     private  String message;
 

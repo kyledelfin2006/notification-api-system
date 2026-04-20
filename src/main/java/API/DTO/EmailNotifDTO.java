@@ -1,6 +1,5 @@
 package API.DTO;
 
-
 public class EmailNotifDTO extends NotificationDTO{
 
     private String senderEmail;
@@ -11,15 +10,12 @@ public class EmailNotifDTO extends NotificationDTO{
     public String getSenderEmail() {
         return senderEmail;
     }
-
     public void setSenderEmail(String senderEmail) {
         this.senderEmail = senderEmail;
     }
-
     public String getReceiverEmail() {
         return receiverEmail;
     }
-
     public void setReceiverEmail(String receiverEmail) {
         this.receiverEmail = receiverEmail;
     }
