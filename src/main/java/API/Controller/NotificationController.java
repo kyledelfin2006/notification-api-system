@@ -31,7 +31,7 @@ public class NotificationController {
         port(8082);
 
         // Dependencies
-        Logger logger = new DualLogger(new FileLogger("notificationList.txt"),new ConsoleLogger());
+        Logger logger = new DualLogger(new FileLogger("LoggingFile.txt"),new ConsoleLogger());
         NotificationRepository repository = new NotificationRepository(new ArrayList<>());
         NotificationService service = new NotificationService(repository);
         NotificationStorage storage = new NotificationStorage(logger,"notificationStorage.txt");
