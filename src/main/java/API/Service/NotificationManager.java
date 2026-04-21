@@ -16,11 +16,12 @@ public class NotificationManager {
 
     private final Logger logger;
     private final Repository<Notification> repository; // In-Memory Repository Object
-    private final Storage<Notification> storage;
-    private final NotificationService service;
+    private final Storage<Notification> storage; // JSON File Storage
+    private final NotificationService service; // Service Logic
+    private final Map<Integer, Notification> idIndex; // ID-Indexing
 
-    private AtomicInteger successfulDeliveries = new AtomicInteger(0); // Stats Counter
-    private AtomicInteger failedDeliveries = new AtomicInteger(0); // Stats Counter
+    private final AtomicInteger successfulDeliveries = new AtomicInteger(0); // Stats Counter
+    private final AtomicInteger failedDeliveries = new AtomicInteger(0); // Stats Counter
 
     // Manages in-memory repository and coordinates file storage, printing, and sending
     public NotificationManager(Logger logger, Repository<Notification> repository, Storage<Notification> storage, NotificationService service) {
@@ -28,7 +29,9 @@ public class NotificationManager {
         this.service = service;
         this.logger = logger;
         this.storage = storage;
+        this.idIndex = new HashMap<>();
         loadFromStorage();
+        resetIndex(); // reset after each load
     }
 
     // Load from storage -> repository
@@ -53,6 +56,13 @@ public class NotificationManager {
         }
     }
 
+    private void resetIndex(){
+        idIndex.clear();
+        for (Notification notification : repository.getAll()){
+            idIndex.put(notification.getID(),notification); // Add ID, Object
+        }
+    }
+
     // Adds Notification in Repository, Then Saves to Storage
     public void addNotification(Notification notification) {
 
@@ -62,6 +72,7 @@ public class NotificationManager {
         }
 
         repository.add(notification);
+        idIndex.put(notification.getID(), notification);
 
         saveToStorage();
 
@@ -78,7 +89,7 @@ public class NotificationManager {
         }
 
         repository.remove(notification);
-
+        idIndex.remove(notification.getID());
         saveToStorage();
 
         logger.info("Removing of " + notification + " complete.");
@@ -93,7 +104,7 @@ public class NotificationManager {
 
     // GET - /api/notifications/
     public Notification getNotificationById(int id) {
-        return repository.getAll().stream().filter(n -> n.getID() == id).findFirst().orElse(null);
+        return idIndex.get(id);
     }
 
 
@@ -116,7 +127,7 @@ public class NotificationManager {
 
         for (Notification notification : repository.getAll()) {
             try {
-                notification.processNotification();
+                notification.processNotification(); // same process for all polymorphic notifications
                 switch (notification.getStatus()) {
                     case SENT -> {
                         successfulDeliveries.incrementAndGet();
@@ -146,6 +157,7 @@ public class NotificationManager {
     public void clearAllNotifications(){
 
         logger.info("Clearing Notifications. ");
+        idIndex.clear();
         repository.clear();
         logger.info("Notifications cleared. ");
         saveToStorage();
