@@ -324,9 +324,9 @@ manager.printStats();
 
 ## Developer Learning Objectives
 
-This project demonstrates the following OOP and Java concepts:
+**Object-Oriented Principles** — includes interface-based design, abstract classes with template methods, composition over inheritance, polymorphism, and dynamic dispatch.
 
-**Object-Oriented Principles** — interface-based design, abstract classes with template methods, composition over inheritance, polymorphism and dynamic dispatch.
+**RESTful API Concepts** — covers the request–response lifecycle, data modeling, HTTP status codes, exception handling, API response structure, and error response handling.
 
 **Design Patterns** — Template Method, Strategy, Repository, and Composite.
 
@@ -334,5 +334,4 @@ This project demonstrates the following OOP and Java concepts:
 
 ---
 
-*Author: Kyle | Purpose: OOP principles, SOLID and design patterns in Java*
-```
+*Author: Kyle | Purpose: OOP principles, Rest API, SOLID and design patterns in Java*
