@@ -113,6 +113,7 @@ public class NotificationManager {
 
             try {
                 notification.processNotification();
+                saveToStorage();
             } catch (Exception e){
                 throw new RuntimeException(e);
             }
