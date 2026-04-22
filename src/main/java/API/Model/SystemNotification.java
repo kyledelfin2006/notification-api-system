@@ -26,7 +26,7 @@ public class SystemNotification extends Notification {
 
     @Override
     public void sendMessage() {
-        logger.info("Sending System Notification to: " + getDeviceOS() + " Message:ss " + getMessage());
+        logger.info("Sending System Notification to: " + getDeviceOS() + " Message: " + getMessage());
     }
 
 
