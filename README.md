@@ -8,45 +8,152 @@ A Java-based notification dispatch system using core OOP principles including ab
 
 ---
 
-## File Structure
+## Why I Built This
 
-| File | Purpose |
-|------|---------|
-| `Main.java` | Entry point and demo orchestrator |
-| `Notification.java` | Abstract base class with template method pattern |
-| `EmailNotification.java` | Email notification implementation |
-| `SMSNotification.java` | SMS notification with phone number validation |
-| `PushNotification.java` | Push notification implementation |
-| `SystemNotification.java` | System-level notification implementation |
-| `NotificationManager.java` | Core business logic and coordination |
-| `NotificationRepository.java` | In-memory collection management |
-| `NotificationStorage.java` | JSON file persistence using Jackson |
-| `NotificationService.java` | Filtering service for Notifications |
-| `Logger.java` | Logging interface |
-| `ConsoleLogger.java` | Logs to standard output |
-| `FileLogger.java` | Logs to a timestamped file |
-| `DualLogger.java` | Composite logger (console + file simultaneously) |
-| `Repository.java` | Generic repository interface |
-| `Storage.java` | Generic storage interface |
-| `Sendable.java` | Interface for sendable notifications |
+Before starting Spring Boot, I wanted a solid understanding of what a web framework is actually doing, not just how to use one.
+
+Spring Boot abstracts a lot: routing, JSON parsing, request/response handling, error management, dependency injection. That's powerful, but if you jump straight into it without understanding the foundations, you end up copying annotations without knowing what problem they solve.
+
+So I built this first, with three specific goals:
 
 ---
 
-### Prerequisites
+### 1. Understand HTTP methods and what they mean semantically
 
-- Java 17+
-- [Jackson Databind 2.15.2](https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.15.2/)
+Not just "GET retrieves data", but why you use `POST` instead of `PUT` for creation, why `DELETE` returns `404` when something doesn't exist, and why `POST` returns `201` instead of `200`.
 
+**What this project taught me:** Every endpoint in `NotificationController` maps directly to an HTTP verb that signals intent — not just functionality.
+
+---
+
+### 2. Understand polymorphic HTTP handling
+
+This was the biggest insight. A single `/api/notifications` endpoint can't just return a list — it returns `EmailNotification`, `SMSNotification`, `PushNotification`, and `SystemNotification` all mixed together.
+
+**How this project handles it:**
+- Jackson's `@JsonTypeInfo` with `property = "type"` tells the serializer to include a discriminator field
+- `@JsonSubTypes` maps `"email"`, `"sms"`, `"push"`, `"system"` to their respective classes
+- The same mechanism works in reverse: when a `POST` request comes in with a `type` field, Jackson instantiates the correct subclass automatically
+
+**What this taught me:** Polymorphism isn't just an OOP concept — it has real HTTP/JSON implications. Spring Boot's `@JsonTypeInfo` works exactly the same way, but building it manually showed me why it's necessary.
+
+---
+
+### 3. Understand HTTP status codes and when to use them
+
+Every response has a deliberately chosen status code:
+
+| Status | When |
+|--------|------|
+| `200 OK` | Successful `GET`, `DELETE`, or batch operation |
+| `201 CREATED` | Resource successfully created via `POST` |
+| `400 BAD REQUEST` | Validation failed (invalid email, malformed phone number) |
+| `404 NOT FOUND` | Notification ID doesn't exist |
+| `500 INTERNAL SERVER ERROR` | Unexpected processing failure |
+
+**What this taught me:** Status codes are part of the HTTP contract, not optional decorations. Clients rely on them.
+
+---
+
+### 4. Understand how a request actually flows through a layered application
+
+From raw HTTP request → JSON parsing → DTO validation → domain model creation → repository storage → JSON persistence → structured response.
+
+**The flow this project exposes:**
+```
+HTTP POST /api/notifications/email
+    ↓
+Spark parses raw request
+    ↓
+Jackson maps JSON → EmailNotifDTO
+    ↓
+NotificationController creates EmailNotification (validation happens in constructor)
+    ↓
+NotificationManager.addNotification()
+    ↓
+Repository.add() + idIndex.put() + Storage.save()
+    ↓
+201 CREATED + ApiResponse wrapper
+```
+
+**What this taught me:** Spring Boot automates this entire wiring. That's convenient, but building it manually showed me *what* it's automating and *why* each layer exists.
+
+---
+
+## Did this project accomplish its intended goals?
+
+**Yes.**
+
+I now understand:
+- Why frameworks like Spring Boot exist (they solve real wiring complexity)
+- What polymorphism means for JSON serialization (not just Java objects)
+- Why HTTP status codes matter beyond "it worked or it didn't"
+- How to structure layered applications without magic annotations
+
+When I move to Spring Boot, I won't be copying patterns — I'll be recognizing solutions to problems I've already solved manually.
+
+## Project Structure
+
+```
+src/
+└── main/java/API/
+    ├── Controller/
+    │   └── NotificationController.java        
+    │  
+    ├── DTO/
+    │    ├── EmailNotifDTO.java 
+    │    ├── NotificationDTO.java
+    │    ├── PushNotifDTO.java 
+    │    ├── SMSNotifDTO.java
+    │    └── NotificationDTO.java
+    │
+    ├── Logger/  # Represents what the client sends in a request body.
+    │    ├── ConsoleLogger.java # logs messages to system console.
+    │    ├── FileLogger.java # writes formatted logs with timestamps to a file.
+    │    ├── DualLogger.java # composes two loggers and delegates to both.
+    │    └── Logger.java # Logging contract interface.
+    │
+    ├── Model/ # The Model entities. Validates its own fields on construction.
+    │   ├── EmailNotification.java               
+    │   ├── PushNotification.java             
+    │   ├── SMSNotification.java       
+    │   ├── SystemNotification.java        
+    │   └── Notification.java
+    │     
+    ├── Repository/
+    │   ├── Repository.java       
+    │   └── NotificationRepository.java
+    ├── Storage/
+    │   ├── Storage.java          
+    │   └── NotificationStorage.java  
+    ├── Responses/
+    │   ├── ApiResponse.java        
+    │   └── ErrorResponse.java      
+    ├── Service/
+    │   ├── NotificationManager.java     
+    │   └── NotificationService.java     
+    └── util/
+        └── NotificationIDGenerator.java    
+```
+---
+
+## Tech Stack
+
+| Tool | Purpose |
+|------|---------|
+| Java 21 | Core language |
+| SparkJava 2.9.4 | Lightweight HTTP web framework |
+| Jackson | JSON serialization and deserialization |
+| Maven | Dependency and build management |
+| JUnit 5 | Unit testing |
+
+---
 ### Compile & Run
 
 ```bash
 javac -cp ".:jackson-databind-2.15.2.jar" *.java
 java -cp ".:jackson-databind-2.15.2.jar" kyle.com.Main
 ```
-
----
-
-## Usage
 
 ### Setup
 
