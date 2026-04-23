@@ -3,7 +3,7 @@ package API.Controller;
 import API.DTO.EmailNotifDTO;
 import API.DTO.PushNotifDTO;
 import API.DTO.SMSNotifDTO;
-import API.DTO.SystemNotificationDTO;
+import API.DTO.SystemNotifDTO;
 import API.Logger.ConsoleLogger;
 import API.Logger.DualLogger;
 import API.Logger.FileLogger;
@@ -266,7 +266,7 @@ public class NotificationController {
         post("/api/notifications/system", (req, res) -> {
             try {
 
-                SystemNotificationDTO input = mapper.readValue(req.body(), SystemNotificationDTO.class);
+                SystemNotifDTO input = mapper.readValue(req.body(), SystemNotifDTO.class);
                 Notification notification = new SystemNotification(
                         logger,
                         input.getSender(),

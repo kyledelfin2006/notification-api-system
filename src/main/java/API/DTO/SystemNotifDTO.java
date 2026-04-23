@@ -1,11 +1,11 @@
 package API.DTO;
 
-public class SystemNotificationDTO extends NotificationDTO {
+public class SystemNotifDTO extends NotificationDTO {
 
     private String deviceOS;
     private String deviceToken;
 
-    public SystemNotificationDTO(){}
+    public SystemNotifDTO(){}
 
     public String getDeviceOS() {
         return deviceOS;
