@@ -110,13 +110,8 @@ public class NotificationManager {
 
     // Sends specific Notification
     public void sendMessage(Notification notification){
-
-            try {
-                notification.processNotification();
-                saveToStorage();
-            } catch (Exception e){
-                throw new RuntimeException(e);
-            }
+        notification.processNotification();
+        saveToStorage();
     }
 
     // Sends all Notifications
