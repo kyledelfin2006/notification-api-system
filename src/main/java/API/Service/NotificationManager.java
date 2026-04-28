@@ -31,20 +31,30 @@ public class NotificationManager {
         this.storage = storage;
         this.idIndex = new HashMap<>();
         loadFromStorage();
-        resetIndex(); // reset after each load
     }
 
     // Load from storage -> repository
     private void loadFromStorage() {
         try {
             List<Notification> loaded = storage.load();  // Load once, store in variable
+
+            idIndex.clear();
+            repository.clear();
+
+            // Creates a stream for loaded, maps notifications into their id, finds the max
             int maxId = loaded.stream().mapToInt(Notification::getID).max().orElse(-1);
+
+            // if -1, NextId converts to 0 (-1 + 1)
+
             NotificationIDGenerator.setNextId(maxId + 1);
             repository.addAll(loaded);
             logger.info("Loaded " + loaded.size() + " notifications from storage");
         } catch (IOException e) {
             logger.warn("Could not load notifications: " + e.getMessage());
+            idIndex.clear();
+            repository.clear();
         }
+        resetIndex(); // Successful or Not, ResetIndex still occurs
     }
 
     // Save from repository -> storage
