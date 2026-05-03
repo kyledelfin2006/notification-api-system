@@ -95,7 +95,7 @@ public class NotificationManager {
 
         if (notification == null) {
             logger.error("Notification can't be null.");
-            throw new IllegalArgumentException("Notification cannot be null");
+            throw new IllegalArgumentException("Notification can't be null");
         }
 
         repository.remove(notification);

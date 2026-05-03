@@ -45,9 +45,11 @@ public abstract class Notification implements Sendable {
     protected void validateField(String value, String fieldName) {
         if (value == null || value.trim().isEmpty()) {
             String errorMsg = fieldName + " cannot be null or empty";
+
             if (logger != null) {
                 logger.error(errorMsg);
             }
+
             throw new IllegalArgumentException(errorMsg);
         }
     }
@@ -63,8 +65,8 @@ public abstract class Notification implements Sendable {
             try {
                 logger.info("========== Starting Notification Process ==========");
                 logger.info("Notification # " + getID() + " [" + status + "] ");
-                sendMessage();
-                displayNotification();
+                sendMessage(); // Polymorphic
+                displayNotification(); // Polymorphic
                 status = NotificationStatus.SENT;
                 logger.info("Notification status: " + getID() + ": " + status);
                 logger.info("==========  Notification Process Complete ==========");
