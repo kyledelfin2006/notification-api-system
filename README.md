@@ -1,288 +1,182 @@
-#  Notification Dispatch System
+# Notification API System
 
-![Java](https://img.shields.io/badge/Java-17+-orange?logo=openjdk)
-![Jackson](https://img.shields.io/badge/Jackson-2.15.2-blue)
-![Status](https://img.shields.io/badge/status-active-success)
+A Java-based notification management system that supports multiple notification channels (Email, SMS, Push, System) with persistent JSON storage, structured logging, and a RESTful API design.
 
-A Java-based notification dispatch system using core OOP principles including abstract classes, interfaces, composition, and design patterns such as Template Method, Strategy, Repository, and Composite. 
-
----
-
-## Why I Built This
-
-Before starting Spring Boot, I wanted a solid understanding of what a web framework is actually doing, not just how to use one.
-
-Spring Boot abstracts a lot: routing, JSON parsing, request/response handling, error management, dependency injection. That's powerful, but if you jump straight into it without understanding the foundations, you end up copying annotations without knowing what problem they solve.
-
-So I built this first, with three specific goals:
+![Java](https://img.shields.io/badge/Java-21+-orange)
+![SparkJava](https://img.shields.io/badge/SparkJava-2.9.4-red)
+![Jackson](https://img.shields.io/badge/Jackson-2.x-blue)
+![Status](https://img.shields.io/badge/status-working-brightgreen)
 
 ---
 
-### 1. Understand HTTP methods and what they mean semantically
+## Architecture Overview
 
-Not just "GET retrieves data", but why you use `POST` instead of `PUT` for creation, why `DELETE` returns `404` when something doesn't exist, and why `POST` returns `201` instead of `200`.
-
-**What this project taught me:** Every endpoint in `NotificationController` maps directly to an HTTP verb that signals intent — not just functionality.
-
----
-
-### 2. Understand polymorphic HTTP handling
-
-This was the biggest insight. A single `/api/notifications` endpoint can't just return a list — it returns `EmailNotification`, `SMSNotification`, `PushNotification`, and `SystemNotification` all mixed together.
-
-**How this project handles it:**
-- Jackson's `@JsonTypeInfo` with `property = "type"` tells the serializer to include a discriminator field
-- `@JsonSubTypes` maps `"email"`, `"sms"`, `"push"`, `"system"` to their respective classes
-- The same mechanism works in reverse: when a `POST` request comes in with a `type` field, Jackson instantiates the correct subclass automatically
-
-**What this taught me:** Polymorphism isn't just an OOP concept — it has real HTTP/JSON implications. Spring Boot's `@JsonTypeInfo` works exactly the same way, but building it manually showed me why it's necessary.
-
----
-
-### 3. Understand HTTP status codes and when to use them
-
-Every response has a deliberately chosen status code:
-
-| Status | When |
-|--------|------|
-| `200 OK` | Successful `GET`, `DELETE`, or batch operation |
-| `201 CREATED` | Resource successfully created via `POST` |
-| `400 BAD REQUEST` | Validation failed (invalid email, malformed phone number) |
-| `404 NOT FOUND` | Notification ID doesn't exist |
-| `500 INTERNAL SERVER ERROR` | Unexpected processing failure |
-
-**What this taught me:** Status codes are part of the HTTP contract, not optional decorations. Clients rely on them.
-
----
-
-### 4. Understand how a request actually flows through a layered application
-
-From raw HTTP request → JSON parsing → DTO validation → domain model creation → repository storage → JSON persistence → structured response.
-
-**The flow this project exposes:**
-```
-HTTP POST /api/notifications/email
-    ↓
-Spark parses raw request
-    ↓
-Jackson maps JSON → EmailNotifDTO
-    ↓
-NotificationController creates EmailNotification (validation happens in constructor)
-    ↓
-NotificationManager.addNotification()
-    ↓
-Repository.add() + idIndex.put() + Storage.save()
-    ↓
-201 CREATED + ApiResponse wrapper
-```
-
-**What this taught me:** Spring Boot automates this entire wiring. That's convenient, but building it manually showed me *what* it's automating and *why* each layer exists.
-
----
-
-## Did this project accomplish its intended goals?
-
-**Yes.**
-
-I now understand:
-- Why frameworks like Spring Boot exist (they solve real wiring complexity)
-- What polymorphism means for JSON serialization (not just Java objects)
-- Why HTTP status codes matter beyond "it worked or it didn't"
-- How to structure layered applications without magic annotations
-
-When I move to Spring Boot, I won't be copying patterns — I'll be recognizing solutions to problems I've already solved manually.
-
-## Project Structure
+The project is organized around a layered architecture with clearly separated responsibilities:
 
 ```
-src/
-└── main/java/API/
-    ├── Controller/
-    │   └── NotificationController.java        
-    │  
-    ├── DTO/
-    │    ├── EmailNotifDTO.java 
-    │    ├── NotificationDTO.java
-    │    ├── PushNotifDTO.java 
-    │    ├── SMSNotifDTO.java
-    │    └── NotificationDTO.java
-    │
-    ├── Logger/  # Represents what the client sends in a request body.
-    │    ├── ConsoleLogger.java # logs messages to system console.
-    │    ├── FileLogger.java # writes formatted logs with timestamps to a file.
-    │    ├── DualLogger.java # composes two loggers and delegates to both.
-    │    └── Logger.java # Logging contract interface.
-    │
-    ├── Model/ # The Model entities. Validates its own fields on construction.
-    │   ├── EmailNotification.java               
-    │   ├── PushNotification.java             
-    │   ├── SMSNotification.java       
-    │   ├── SystemNotification.java        
-    │   └── Notification.java
-    │     
-    ├── Repository/
-    │   ├── Repository.java       
-    │   └── NotificationRepository.java
-    ├── Storage/
-    │   ├── Storage.java          
-    │   └── NotificationStorage.java  
-    ├── Responses/
-    │   ├── ApiResponse.java        
-    │   └── ErrorResponse.java      
-    ├── Service/
-    │   ├── NotificationManager.java     
-    │   └── NotificationService.java     
-    └── util/
-        └── NotificationIDGenerator.java    
-```
----
-
-## Tech Stack
-
-| Tool | Purpose |
-|------|---------|
-| Java 21 | Core language |
-| SparkJava 2.9.4 | Lightweight HTTP web framework |
-| Jackson | JSON serialization and deserialization |
-| Maven | Dependency and build management |
-| JUnit 5 | Unit testing |
-
----
-### Compile & Run
-
-```bash
-javac -cp ".:jackson-databind-2.15.2.jar" *.java
-java -cp ".:jackson-databind-2.15.2.jar" kyle.com.Main
+HTTP Layer (Controllers / ApiResponse / ErrorResponse)
+        |
+Service Layer (NotificationManager, NotificationService)
+        |
+Repository Layer (NotificationRepository implements Repository<T>)
+        |
+Model Layer (Notification, EmailNotification, SMSNotification, ...)
+        |
+Storage Layer (NotificationStorage implements Storage<T>)
+        |
+Utility / Infrastructure (Logger, NotificationIDGenerator)
 ```
 
-### Setup
+Each layer depends only on abstractions (interfaces), not concrete implementations, making the system loosely coupled and easy to extend.
+
+---
+
+## Package Structure
+
+```
+api/
+├── dto/                    # Data Transfer Objects for incoming requests
+│   ├── NotificationDTO.java
+│   ├── EmailNotifDTO.java
+│   ├── SMSNotifDTO.java
+│   ├── PushNotifDTO.java
+│   └── SystemNotifDTO.java
+│
+├── model/                  # Core domain objects
+│   ├── Sendable.java       # Interface: sendMessage()
+│   ├── Notification.java   # Abstract base class
+│   ├── EmailNotification.java
+│   ├── SMSNotification.java
+│   ├── PushNotification.java
+│   └── SystemNotification.java
+│
+├── repository/             # In-memory collection management
+│   ├── Repository.java     # Generic interface
+│   └── NotificationRepository.java
+│
+├── storage/                # JSON file persistence
+│   ├── Storage.java        # Generic interface
+│   └── NotificationStorage.java
+│
+├── service/                # Business logic
+│   ├── NotificationManager.java
+│   └── NotificationService.java
+│
+├── loggers/                # Logging infrastructure
+│   ├── Logger.java         # Interface
+│   ├── ConsoleLogger.java
+│   ├── FileLogger.java
+│   └── DualLogger.java
+│
+├── responses/              # HTTP response wrappers
+│   ├── ApiResponse.java
+│   └── ErrorResponse.java
+│
+└── util/
+    └── NotificationIDGenerator.java
+```
+
+---
+
+## Core Design Patterns
+
+### Generic Interfaces
+
+Both the repository and storage layers are backed by generic interfaces, allowing the same contract to serve different data types without duplication.
 
 ```java
-Logger logger = new DualLogger(
-    new FileLogger("notifications.log"),
-    new ConsoleLogger()
-);
+public interface Repository<T> {
+    void add(T type);
+    void remove(T type);
+    void addAll(List<T> type);
+    List<T> getAll();
+    void clear();
+}
 
-NotificationRepository repository = new NotificationRepository(new ArrayList<>());
-Storage<Notification> storage = new NotificationStorage(logger, "notifications.json");
-NotificationService service = new NotificationService(repository);
-NotificationManager manager = new NotificationManager(repository,service,logger,storage);
+public interface Storage<T> {
+    void save(List<T> items) throws IOException;
+    List<T> load() throws IOException;
+}
 ```
 
-### Creating Notifications
+`NotificationRepository` implements `Repository<Notification>` and wraps an injected `List<Notification>`, returning an unmodifiable view to callers to protect the internal state.
+
+### Dependency Injection
+
+`NotificationManager` receives all its collaborators through its constructor: a `Logger`, a `Repository<Notification>`, a `Storage<Notification>`, and a `NotificationService`. No concrete class is instantiated internally. This makes the manager fully testable and interchangeable.
 
 ```java
-// Email
-EmailNotification email = new EmailNotification(
-    logger, "LeBron James", "lebron@gmail.com", "boss@yahoo.com", "Meeting tomorrow!"
-);
-
-// SMS (Philippine format — exactly 11 digits)
-SMSNotification sms = new SMSNotification(
-    logger, "Kobe Bryant", "09123456789", "09476384433", "Hello LBJ!"
-);
-
-// Push
-PushNotification push = new PushNotification(
-    logger, "Netflix", "device-abc-123", "New episode available!"
-);
-
-// System
-SystemNotification system = new SystemNotification(
-    logger, "System", "Android", "device-xyz-789", "Update available"
-);
+public NotificationManager(Logger logger, Repository<Notification> repository,
+                            Storage<Notification> storage, NotificationService service) {
+    this.repository = repository;
+    this.service = service;
+    this.logger = logger;
+    this.storage = storage;
+    this.idIndex = new HashMap<>();
+    loadFromStorage();
+}
 ```
 
-### Managing Notifications
+### ID Index (Fast Lookup)
+
+In addition to the repository list, `NotificationManager` maintains a `Map<Integer, Notification>` that maps each notification's ID to its object. This provides O(1) lookup by ID without scanning the entire list.
 
 ```java
-manager.addNotification(email);       // Adds and auto-saves to JSON
-manager.sendMessage(email);           // Process a single notification
-manager.sendAllMessages();            // Process all pending notifications
-manager.printStats();                 // Print delivery statistics
-manager.deleteNotification(sms);      // Remove a notification
-manager.clearAllNotifications();      // Remove all notifications
+public Notification getNotificationById(int id) {
+    return idIndex.get(id);
+}
 ```
+
+The index is rebuilt from the repository any time storage is loaded (`resetIndex()`), keeping both structures in sync.
 
 ---
 
-## Sample Output
+## Polymorphism
 
-**Console**
-```
-[INFO] 🚀 STARTING NOTIFICATION SYSTEM DEMO 🚀
-[INFO] Adding of Notification#0 [PENDING] complete.
-[INFO] Sending Email Notification: to boss@yahoo.com: Meeting tomorrow!
-[INFO] Notification status: SENT
-[INFO] Successful messages: 1
-[INFO] Failed: 0
-[INFO] Total: 4
-[INFO] Success Rate: 100.0%
-```
+The `Notification` abstract class is the backbone of the polymorphic design. It defines the shared contract and enforces behavior through abstract methods and a final template method.
 
-**File Log (`notifications.log`)**
-```
-Sat, Mar 21, 2025 10:30:45 | [INFO] | 🚀 STARTING NOTIFICATION SYSTEM DEMO 🚀
-Sat, Mar 21, 2025 10:30:45 | [INFO] | Adding of Notification#0 [PENDING] complete.
-Sat, Mar 21, 2025 10:30:45 | [INFO] | Sending Email Notification: to boss@yahoo.com: Meeting tomorrow!
-Sat, Mar 21, 2025 10:30:45 | [INFO] | Notification status: SENT
-```
-
-**JSON Storage (`notifications.json`)**
-```json
-[
-  {
-    "type": "email",
-    "sender": "LeBron James",
-    "message": "Meeting tomorrow!",
-    "status": "SENT",
-    "id": 0,
-    "senderEmail": "lebron@gmail.com",
-    "receiverEmail": "boss@yahoo.com"
-  },
-  {
-    "type": "sms",
-    "sender": "Kobe Bryant",
-    "message": "Hello LBJ!",
-    "status": "PENDING",
-    "id": 1,
-    "senderPhoneNumber": "09123456789",
-    "receiverPhoneNumber": "09476384433"
-  }
-]
-```
-
----
-
-### Retry Logic (`Notification.java`)
+### Abstract Base Class
 
 ```java
-for (int attempt = 1; attempt <= getMaxRetryAttempts(); attempt++) {
-    try {
-        sendMessage();
-        displayNotification();
-        status = NotificationStatus.SENT;
-        break;
-    } catch (IllegalArgumentException e) {
-        status = NotificationStatus.FAILED; // No retry on validation errors
-        break;
-    } catch (Exception e) {
-        logger.warn("Processing failed. " + (getMaxRetryAttempts() - attempt) + " attempt(s) left.");
+public abstract class Notification implements Sendable {
+    public abstract void displayNotification();  // Subclass defines output
+    
+    public final void processNotification() {    // Cannot be overridden
+        for (int attempt = 1; attempt <= getMaxRetryAttempts(); attempt++) {
+            sendMessage();          // Polymorphic dispatch
+            displayNotification();  // Polymorphic dispatch
+            ...
+        }
     }
 }
 ```
 
-### Validation Rules
+`processNotification()` is declared `final`, meaning no subclass can alter the retry logic, status transitions, or logging behavior. What varies is encapsulated in `sendMessage()` and `displayNotification()`, each implemented differently per notification type.
 
-| Notification Type | Rules |
-|-------------------|-------|
-| Email | Sender and receiver emails cannot be null or empty |
-| SMS | Phone numbers must be exactly 11 digits |
-| Push | Device token cannot be null or empty |
-| System | Device token and OS cannot be null or empty |
-| All | Sender name and message cannot be null or empty |
+### Concrete Implementations
 
-### JSON Polymorphism
+| Class | Unique Fields | Validation |
+|---|---|---|
+| `EmailNotification` | `senderEmail`, `receiverEmail` | Regex + dot-rule checks |
+| `SMSNotification` | `senderPhoneNumber`, `receiverPhoneNumber` | Must be exactly 11 digits |
+| `PushNotification` | `deviceToken` | Non-null, non-empty |
+| `SystemNotification` | `deviceOS`, `deviceToken` | Non-null, non-empty |
+
+Each class calls `super(sender, message, logger)` and then performs its own type-specific field validation before storing the data, following a consistent construction pattern across all subtypes.
+
+### Polymorphic Batch Processing
+
+`sendAllMessages()` in `NotificationManager` iterates over a `List<Notification>` and calls `processNotification()` on each element. The correct `sendMessage()` and `displayNotification()` implementations are resolved at runtime through virtual dispatch:
+
+```java
+for (Notification notification : repository.getAll()) {
+    notification.processNotification(); // resolves to Email, SMS, Push, or System at runtime
+}
+```
+
+### Jackson Polymorphic Deserialization
+
+The `Notification` class uses Jackson annotations to support serializing and deserializing the full class hierarchy from JSON. When loading from file, Jackson reads the `"type"` field and reconstructs the correct subclass automatically.
 
 ```java
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
@@ -295,150 +189,228 @@ for (int attempt = 1; attempt <= getMaxRetryAttempts(); attempt++) {
 public abstract class Notification implements Sendable { ... }
 ```
 
+This means a saved list of mixed notification types is restored with full type fidelity across restarts.
+
 ---
 
-## System Architecture
+## Logging System
+
+The logging infrastructure is built on the `Logger` interface, which declares four levels: `info`, `error`, `debug`, and `warn`. Three implementations are provided.
+
+### ConsoleLogger
+
+Writes formatted messages directly to standard output. Suitable for development and local debugging.
+
+### FileLogger
+
+Writes timestamped log entries to a file using `BufferedWriter`. Each entry follows the format:
 
 ```
-┌──────────────────────────────────────────────┐
-│                   Main.java                   │
-│                   (Demo)                      │
-└──────────────────────┬───────────────────────┘
-                       │
-                       ▼
-┌──────────────────────────────────────────────┐
-│            NotificationManager               │
-│  ┌────────────────────────────────────────┐  │
-│  │              Manages:                  │  │
-│  │  ┌──────────┐ ┌────────┐ ┌─────────┐  │  │
-│  │  │Repository│ │ Logger │ │ Storage │  │  │
-│  │  │(contains)│ │ (uses) │ │  (uses) │  │  │
-│  │  └──────────┘ └────────┘ └─────────┘  │  │
-│  └────────────────────────────────────────┘  │
-└──────────────────────┬───────────────────────┘
-                       │
-                       ▼
-┌──────────────────────────────────────────────┐
-│           Notification (abstract)            │
-│  ┌────────────────────────────────────────┐  │
-│  │  +processNotification()  [final]       │  │
-│  │  +sendMessage()          [abstract]    │  │
-│  │  +displayNotification()  [abstract]    │  │
-│  │  #validateField()                      │  │
-│  └────────────────────────────────────────┘  │
-│         │         │         │         │      │
-│         ▼         ▼         ▼         ▼      │
-│  ┌──────────┐ ┌───────┐ ┌──────┐ ┌────────┐ │
-│  │  Email   │ │  SMS  │ │ Push │ │ System │ │
-│  │Notif.    │ │Notif. │ │Notif.│ │ Notif. │ │
-│  └──────────┘ └───────┘ └──────┘ └────────┘ │
-└──────────────────────┬───────────────────────┘
-                       │
-          ┌────────────┴────────────┐
-          ▼                         ▼
-┌──────────────────┐     ┌──────────────────┐
-│ Logger           │     │ Sendable         │
-│ (interface)      │     │ (interface)      │
-│ +info()          │     │ +sendMessage()   │
-│ +error()         │     └──────────────────┘
-│ +debug()         │
-│ +warn()          │
-└────────┬─────────┘
-         │
-   ┌─────┼─────┐
-   ▼     ▼     ▼
-┌───────┐ ┌───────┐ ┌───────┐
-│Console│ │ File  │ │ Dual  │
-│Logger │ │Logger │ │Logger │
-└───────┘ └───────┘ └───────┘
+Mon, May 05, 2026 14:32:00 | [INFO] | Notification #3 [SENT]
 ```
 
----
+The file is opened in append mode, so log history is preserved across restarts.
 
-## Design Patterns Used
+### DualLogger (Composition)
 
-| Pattern | Where |
-|---------|-------|
-| Template Method | `Notification.processNotification()` defines the fixed workflow |
-| Strategy | Pluggable `Logger` implementations |
-| Repository | `NotificationRepository` manages the collection |
-| Composite | `DualLogger` delegates to multiple loggers |
-
----
-
-## Error Handling
+`DualLogger` wraps two `Logger` instances and delegates each log call to both. This is a direct application of object composition over inheritance, allowing any two loggers to be combined without subclassing either.
 
 ```java
-// Example: invalid SMS phone number
-try {
-    SMSNotification invalid = new SMSNotification(
-        logger, "Test", "123", "456", "Hello"
-    );
-} catch (IllegalArgumentException e) {
-    // Output: [ERROR] Phone number must be exactly 11 digits
+public class DualLogger implements Logger {
+    private final Logger firstLogger;
+    private final Logger secondLogger;
+
+    public DualLogger(Logger firstLogger, Logger secondLogger) {
+        this.firstLogger = firstLogger;
+        this.secondLogger = secondLogger;
+    }
+
+    @Override
+    public void info(String message) {
+        firstLogger.info(message);
+        secondLogger.info(message);
+    }
+}
+```
+
+A typical usage would be `new DualLogger(new ConsoleLogger(), new FileLogger("app.log"))`, which simultaneously logs to both outputs with no additional code.
+
+---
+
+## Storage and Persistence
+
+`NotificationStorage` implements `Storage<Notification>` using Jackson's `ObjectMapper`. It handles both serialization to disk and deserialization back into typed objects.
+
+On save, it writes the entire notification list as a pretty-printed JSON array. On load, it uses Jackson's `TypeFactory` to construct a `List<Notification>` with full subtype resolution:
+
+```java
+return mapper.readValue(
+    filePath,
+    mapper.getTypeFactory().constructCollectionType(List.class, Notification.class)
+);
+```
+
+If the file does not exist on load, an empty list is returned and no exception is thrown, allowing the system to start fresh cleanly.
+
+### ID Continuity Across Restarts
+
+`NotificationIDGenerator` uses an `AtomicInteger` to produce sequential IDs. After loading from storage, `NotificationManager` scans all loaded notifications for the maximum ID and sets the generator's counter accordingly:
+
+```java
+int maxId = loaded.stream().mapToInt(Notification::getID).max().orElse(-1);
+NotificationIDGenerator.setNextId(maxId + 1);
+```
+
+This prevents ID collisions across application restarts without requiring a database sequence.
+
+---
+
+## HTTP API Design
+
+The API follows RESTful conventions. Responses are wrapped in `ApiResponse<T>` for successes and `ErrorResponse` for failures, both carrying a `timestamp` field generated at construction time.
+
+### ApiResponse
+
+```java
+public class ApiResponse<T> {
+    private final boolean success;
+    private String message;
+    private T data;
+    private final long timestamp;
+}
+```
+
+The generic type parameter `T` allows the same wrapper to carry any payload: a single `Notification`, a `List<Notification>`, a statistics `Map`, or a plain `String` message.
+
+### ErrorResponse
+
+```java
+public class ErrorResponse {
+    private final String error;
+    private String details;
+    private final int statusCode;
+    private final long timestamp;
+}
+```
+
+Used when validation fails, a resource is not found, or an unexpected exception is thrown. The `statusCode` field maps to standard HTTP status codes (400, 404, 500, etc.).
+
+### Endpoint Conventions
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/api/notifications` | Retrieve all notifications |
+| GET | `/api/notifications/{id}` | Retrieve a single notification by ID |
+| POST | `/api/notifications/email` | Create an email notification |
+| POST | `/api/notifications/sms` | Create an SMS notification |
+| POST | `/api/notifications/push` | Create a push notification |
+| POST | `/api/notifications/system` | Create a system notification |
+| POST | `/api/notifications/{id}/send` | Send a specific notification |
+| POST | `/api/notifications/send-all` | Send all notifications |
+| DELETE | `/api/notifications/{id}` | Delete a notification |
+| DELETE | `/api/notifications` | Clear all notifications |
+| GET | `/api/notifications/stats` | Get delivery statistics |
+
+### Data Transfer Objects
+
+Incoming request bodies are mapped to DTO classes rather than directly to model objects. This separates the HTTP contract from the domain model and prevents over-posting. Each DTO extends `NotificationDTO`, which holds the common `sender` and `message` fields, while subclasses add type-specific fields.
+
+---
+
+## Code Highlights
+
+### Thread-Safe Delivery Counters
+
+`NotificationManager` tracks successful and failed deliveries using `AtomicInteger`, which performs read-modify-write as a single atomic operation, making the counters safe for concurrent use without explicit synchronization.
+
+```java
+private final AtomicInteger successfulDeliveries = new AtomicInteger(0);
+private final AtomicInteger failedDeliveries = new AtomicInteger(0);
+```
+
+### Retry Logic with Status Transitions
+
+`processNotification()` retries up to `MAX_RETRY_ATTEMPTS` times. Validation errors (`IllegalArgumentException`) are non-retryable and immediately set the status to `FAILED`. All other exceptions consume a retry slot and log a warning. If all attempts are exhausted without success, the status is set to `FAILED` after the loop.
+
+```java
+public final void processNotification() {
+    for (int attempt = 1; attempt <= getMaxRetryAttempts(); attempt++) {
+        try {
+            sendMessage();
+            displayNotification();
+            status = NotificationStatus.SENT;
+            break;
+        } catch (IllegalArgumentException e) {
+            status = NotificationStatus.FAILED;
+            break;                          // No retry for validation errors
+        } catch (Exception e) {
+            logger.warn("... " + attemptsLeft + " attempt(s) left.");
+        }
+    }
+    if (status == NotificationStatus.PENDING) {
+        status = NotificationStatus.FAILED;
+    }
+}
+```
+
+### Email Validation
+
+`EmailNotification` applies a two-pass validation: a regex check for overall structure, then explicit checks for consecutive dots and leading or trailing dots in both the local part and the domain.
+
+```java
+String emailRegex = "^[\\p{L}\\p{N}+_.-]+@[\\p{L}\\p{N}.-]+\\.[\\p{L}]{2,}$";
+
+if (localPart.contains("..") || localPart.startsWith(".") || localPart.endsWith(".")) {
+    return false;
+}
+```
+
+### Unmodifiable Repository View
+
+`NotificationRepository.getAll()` wraps the internal list in `Collections.unmodifiableList()`, ensuring callers cannot modify the collection directly and must go through the repository's own `add` and `remove` methods.
+
+```java
+public List<Notification> getAll() {
+    return Collections.unmodifiableList(notificationList);
 }
 ```
 
 ---
 
-## Statistics
+## Notification Lifecycle
 
-```java
-manager.sendAllMessages();
-manager.printStats();
-// [INFO] Successful messages: 3
-// [INFO] Failed: 1
-// [INFO] Total: 4
-// [INFO] Success Rate: 75.0%
+```
+Constructor called
+      |
+Field validation (sender, message, type-specific fields)
+      |
+Status: PENDING
+      |
+processNotification() called
+      |
+      +-- attempt 1..3
+      |       |
+      |   sendMessage()          <- polymorphic
+      |   displayNotification()  <- polymorphic
+      |       |
+      |   Success -> Status: SENT, break
+      |   Validation error -> Status: FAILED, break
+      |   Other error -> warn, retry
+      |
+All attempts exhausted -> Status: FAILED
+      |
+saveToStorage()
 ```
 
 ---
 
-##  Notes
+## Delivery Statistics
 
-| Topic | Detail |
-|-------|--------|
-| File paths | Update `Logger.txt` and `notifications.json` paths as needed |
-| SMS format | Validates Philippine format (11 digits) — update regex for other regions |
-| JSON library | Requires Jackson Databind 2.15.2+ |
-| Thread safety | Not thread-safe — single-threaded use only |
-| ID generation | Static counter resets on JVM restart; IDs may not be unique across sessions |
-| Run behavior | First run creates `notifications.json`; subsequent runs load from it |
+`getDeliveryStatistics()` returns a `Map<String, Object>` with four keys:
 
----
+- `total` — current number of notifications in the repository
+- `successful` — cumulative count of successfully delivered notifications
+- `failed` — cumulative count of failed deliveries
+- `successRate` — percentage of successful deliveries over total attempted; `null` if no deliveries have been attempted
 
-##  Possible Enhancements
-
-| Possible Enhancements |
-| | Replace JSON file storage with a proper database |
-| Add unit tests with mocking (e.g., JUnit + Mockito) |
-| Notification templates with placeholders |
-| Priority queues for urgent notifications |
-| Batch processing and rate limiting |
-| Webhook support for external integrations |
-| Scheduled delivery (time-based sending) |
-| International phone number validation library |
-
----
-
-## Requirements
-
-- Java 17+
-- Jackson Databind 2.15.2+
-- Write permissions for `notifications.log` and `notifications.json`
-
----
-
-## Developer Learning Objectives
-
-**Object-Oriented Principles** — includes interface-based design, abstract classes with template methods, composition over inheritance, polymorphism, and dynamic dispatch.
-
-**RESTful API Concepts** — covers the request–response lifecycle, data modeling, HTTP status codes, exception handling, API response structure, and error response handling.
-
-**Design Patterns** — Template Method, Strategy, Repository, and Composite.
-
-**Technicals** — JSON serialization with polymorphism, exception handling and input validation, file I/O, generic programming, and the Java Collections Framework.
-
----
-
-*Author: Kyle | Purpose: OOP principles, Rest API, SOLID and design patterns in Java*
+Note that `total` reflects the current repository size, while `successful` and `failed` are session-level counters that accumulate across all `sendMessage` and `sendAllMessages` calls within a single application run.
