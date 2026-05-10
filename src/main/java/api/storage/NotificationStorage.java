@@ -34,9 +34,8 @@ public class NotificationStorage implements Storage<Notification> {
           logger.info("  - " + n.getClass().getSimpleName() + ": " + n.getMessage());
         }
 
-        logger.info("Saved to: " + new File(filename).getAbsolutePath());
-
         mapper.writeValue(new File(filename), notifications);
+        logger.info("Saved to: " + new File(filename).getAbsolutePath());
 }
 
     // Load all notifications from file // Should be caught externally

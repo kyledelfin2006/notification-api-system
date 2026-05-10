@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class NotificationManager {
@@ -29,7 +30,7 @@ public class NotificationManager {
         this.service = service;
         this.logger = logger;
         this.storage = storage;
-        this.idIndex = new HashMap<>();
+        this.idIndex = new ConcurrentHashMap<>(); // Set to Concurrent Hashmap upon load.
         loadFromStorage();
     }
 
@@ -145,17 +146,21 @@ public class NotificationManager {
                         batchFailed++;
                         logger.error("Notification: " + notification.getID() + " failed to be sent.");
                     }
+
+                    default -> {
+                        logger.warn("Unexpected status {} | " + notification.getMessage() + " | for notification {}");
+                        batchFailed++;
+                    }
+
                 }
-                saveToStorage();
             } catch (Exception e) {
                 failedDeliveries.incrementAndGet();
                 batchFailed++;
-                logger.error("Failed to process " +
-                        notification.getClass().getSimpleName() + ": " + e.getMessage());
-                saveToStorage();
+                logger.error("Unexpected Error | Failed to process " + notification.getClass().getSimpleName() + ": " + e.getMessage());
             }
         }
 
+        saveToStorage();
         logger.info(String.format("| Batch completed - Success=%d, Failed=%d |  ",batchSuccess,batchFailed));
     }
 
