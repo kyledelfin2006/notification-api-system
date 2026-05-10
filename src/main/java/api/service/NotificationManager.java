@@ -19,7 +19,7 @@ public class NotificationManager {
     private final Repository<Notification> repository; // In-Memory Repository Object
     private final Storage<Notification> storage; // JSON File Storage
     private final NotificationService service; // Service Logic
-    private final Map<Integer, Notification> idIndex; // ID-Indexing
+    private Map<Integer, Notification> idIndex; // ID-Indexing
 
     private final AtomicInteger successfulDeliveries = new AtomicInteger(0); // Stats Counter
     private final AtomicInteger failedDeliveries = new AtomicInteger(0); // Stats Counter
@@ -55,7 +55,6 @@ public class NotificationManager {
             idIndex.clear();
             repository.clear();
         }
-        resetIndex(); // Successful or Not, ResetIndex still occurs
     }
 
     // Save from repository -> storage
@@ -67,11 +66,14 @@ public class NotificationManager {
         }
     }
 
-    private void resetIndex(){
-        idIndex.clear();
-        for (Notification notification : repository.getAll()){
-            idIndex.put(notification.getID(),notification); // Add ID, Object
+    private void resetIndex() {
+        List<Notification> snapshot = repository.getAll();  // synchronized snapshot
+        Map<Integer, Notification> newIndex = new ConcurrentHashMap<>();
+        for (Notification notification : snapshot) {
+            newIndex.put(notification.getID(), notification);
         }
+
+        idIndex = newIndex; // Atomic Swap, Safe for adding and removing.
     }
 
     // Adds Notification in Repository, Then Saves to Storage
@@ -83,8 +85,9 @@ public class NotificationManager {
         }
 
         repository.add(notification);
-        idIndex.put(notification.getID(), notification);
-
+        Map<Integer, Notification> newIndex = new ConcurrentHashMap<>(idIndex);
+        newIndex.put(notification.getID(), notification);
+        idIndex = newIndex; // Atomic Swap for safety
         saveToStorage();
 
         logger.info("Adding of " + notification + " complete.");
@@ -100,7 +103,9 @@ public class NotificationManager {
         }
 
         repository.remove(notification);
-        idIndex.remove(notification.getID());
+        Map<Integer, Notification> newIndex = new ConcurrentHashMap<>(idIndex);
+        newIndex.remove(notification.getID());
+        idIndex = newIndex;
         saveToStorage();
 
         logger.info("Removing of " + notification + " complete.");
@@ -166,13 +171,11 @@ public class NotificationManager {
 
 
     public void clearAllNotifications(){
-
         logger.info("Clearing Notifications. ");
-        idIndex.clear();
         repository.clear();
+        idIndex = new ConcurrentHashMap<>();  // Fresh empty map — no clear() needed
         logger.info("Notifications cleared. ");
         saveToStorage();
-
     }
 
     public Map<String, Object> getDeliveryStatistics() {
