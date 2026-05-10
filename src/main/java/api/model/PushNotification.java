@@ -13,8 +13,8 @@ public class PushNotification extends Notification {
 
     public PushNotification(Logger logger, String sender, String deviceToken, String message) {
         super(sender, message,logger); // calls abstract class constructor
-        validateField(deviceToken, "Device Token");
-        this.deviceToken = deviceToken;
+
+        this.deviceToken = validateAndTrim(deviceToken, "Device Token");
     }
 
     @Override

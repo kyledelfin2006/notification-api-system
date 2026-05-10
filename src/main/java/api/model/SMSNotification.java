@@ -6,35 +6,16 @@ public class SMSNotification extends Notification {
     private final String receiverPhoneNumber;
     private final String senderPhoneNumber;
 
+    private static final String SMS_REGEX = "\\d{11}";
+
 
     public SMSNotification(Logger logger, String sender, String senderPhoneNumber,
                            String receiverPhoneNumber, String message) {
         super(sender, message, logger);
 
         // Validate and store trimmed phone numbers
-        this.senderPhoneNumber = validateAndTrimPhoneNumber(senderPhoneNumber, "Sender phone number");
-        this.receiverPhoneNumber = validateAndTrimPhoneNumber(receiverPhoneNumber, "Receiver phone number");
-    }
-
-    private String validateAndTrimPhoneNumber(String phoneNumber, String fieldName) {
-        if (phoneNumber == null) {
-            logger.error(fieldName + " cannot be null");
-            throw new IllegalArgumentException(fieldName + " cannot be null");
-        }
-
-        String trimmed = phoneNumber.trim();
-
-        if (trimmed.isEmpty()) {
-            logger.error(fieldName + " cannot be empty");
-            throw new IllegalArgumentException(fieldName + " cannot be empty");
-        }
-
-        if (!trimmed.matches("\\d{11}")) {
-            logger.error(fieldName + " must be exactly 11 digits, got: " + trimmed);
-            throw new IllegalArgumentException(fieldName + " must be exactly 11 digits");
-        }
-
-        return trimmed;
+        this.senderPhoneNumber = validateAndTrim(senderPhoneNumber, "Sender phone number", SMS_REGEX);
+        this.receiverPhoneNumber =  validateAndTrim(receiverPhoneNumber, "Receiver phone number", SMS_REGEX);
     }
 
     @Override

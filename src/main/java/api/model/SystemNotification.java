@@ -9,12 +9,9 @@ public class SystemNotification extends Notification {
 
 
     public SystemNotification(Logger logger, String sender, String deviceOS, String deviceToken, String message) {
-        super(sender, message,logger); // calls abstract class constructor
-        validateField(deviceToken, "Device Token");
-        validateField(deviceOS, "DeviceOS");
-
-        this.deviceToken = deviceToken;
-        this.deviceOS = deviceOS;
+        super(sender, message,logger);
+        this.deviceToken = validateAndTrim(deviceToken, "Device Token");
+        this.deviceOS = validateAndTrim(deviceOS, "Device OS");
 
     }
 
@@ -32,7 +29,6 @@ public class SystemNotification extends Notification {
     public String getDeviceOS() {
         return deviceOS;
     }
-
     public String getDeviceToken() {
         return deviceToken;
     }

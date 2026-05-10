@@ -56,7 +56,7 @@ public abstract class Notification implements Sendable {
             } catch (Exception e) {
                 int attemptsLeft = getMaxRetryAttempts() - attempt;
                 status = NotificationStatus.PENDING;
-                logger.warn("Processing of message faile d. " + attemptsLeft + " attempt(s) left. ");
+                logger.warn("Processing of message failed. " + attemptsLeft + " attempt(s) left. ");
             }
         }
 
