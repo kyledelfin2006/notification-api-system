@@ -6,6 +6,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class NotificationIDGenerator{
     private static final AtomicInteger nextId = new AtomicInteger(0);
 
+    private NotificationIDGenerator() {
+        throw new UnsupportedOperationException("Utility class — do not instantiate");
+    }
+
     public static int generateNextID() {
         // READ + WRITE as ONE operation
         return nextId.getAndIncrement();
