@@ -28,48 +28,26 @@ public abstract class Notification implements Sendable {
     }
 
     protected Notification(String sender, String message, Logger logger) {
-        // Validate and format the fields
-        validateField(sender, "Sender");
-        validateField(message, "Message");
-
         this.logger = logger;
         this.id = NotificationIDGenerator.generateNextID();
-        this.sender = formatField(sender);  // Store trimmed version
-        this.message = formatField(message); // Store trimmed version
+        this.sender =  validateAndTrim(sender,"Sender");
+        this.message = validateAndTrim(message,"Message");
         this.status = NotificationStatus.PENDING;
     }
 
+    // Polymorphic Implementation
     public abstract void displayNotification();
-
-    // Validate that field is not null or empty after trimming
-    protected void validateField(String value, String fieldName) {
-        if (value == null || value.trim().isEmpty()) {
-            String errorMsg = fieldName + " cannot be null or empty";
-
-            if (logger != null) {
-                logger.error(errorMsg);
-            }
-
-            throw new IllegalArgumentException(errorMsg);
-        }
-    }
-
-    // Format the field by trimming whitespace
-    private String formatField(String field) {
-        // Field is already validated, so safe to trim
-        return field.trim();
-    }
 
     public final void processNotification() {
         for (int attempt = 1; attempt <= getMaxRetryAttempts(); attempt++){
             try {
-                logger.info("========== Starting Notification Process ==========");
+                logger.info(" | Starting Notification Process | ");
                 logger.info("Notification # " + getID() + " [" + status + "] ");
-                sendMessage(); // Polymorphic
-                displayNotification(); // Polymorphic
+                sendMessage(); // Polymorphic Call
+                displayNotification(); // Polymorphic Call
                 status = NotificationStatus.SENT;
                 logger.info("Notification status: " + getID() + ": " + status);
-                logger.info("==========  Notification Process Complete ==========");
+                logger.info(" | Notification Process Complete | ");
                 break;
             } catch (IllegalArgumentException e){
                 logger.error("Validation error (won't retry): " + e.getMessage());
@@ -86,6 +64,30 @@ public abstract class Notification implements Sendable {
             status = NotificationStatus.FAILED;
             logger.error("Notification #" + getID() + " failed after " + getMaxRetryAttempts() + " attempts");
         }
+    }
+
+    protected String validateAndTrim(String value, String fieldName, String regex) {
+        if (value == null || value.trim().isEmpty()) {
+            String msg = fieldName + " cannot be null or empty";
+            logger.error(msg);
+            throw new IllegalArgumentException(msg);
+        }
+        String trimmed = value.trim();
+        if (!trimmed.matches(regex)) {
+            String msg = fieldName + " is invalid: " + trimmed;
+            logger.error(msg);
+            throw new IllegalArgumentException(msg);
+        }
+        return trimmed;
+    }
+
+    protected String validateAndTrim(String value, String fieldName) {
+        if (value == null || value.trim().isEmpty()) {
+            String msg = fieldName + " Cannot be null or empty";
+            logger.error(msg);
+            throw new IllegalArgumentException(msg);
+        }
+        return value.trim();
     }
 
     public String toString() {
