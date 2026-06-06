@@ -379,9 +379,6 @@ public class NotificationController {
                 return mapper.writeValueAsString(new ErrorResponse("Processing Error", e.getMessage(), 500));
             }
         });
-
-
-
     }
 
     private static void printStartupMessage() {

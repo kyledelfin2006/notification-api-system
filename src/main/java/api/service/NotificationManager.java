@@ -39,6 +39,7 @@ public class NotificationManager {
         try {
             List<Notification> loaded = storage.load();  // Load once, store in variable
 
+            // Clear Existing
             idIndex.clear();
             repository.clear();
 
@@ -47,8 +48,9 @@ public class NotificationManager {
 
             // if -1, NextId converts to 0 (-1 + 1)
 
-            NotificationIDGenerator.setNextId(maxId + 1);
+            NotificationIDGenerator.setNextId(maxId + 1); // (-1 + 1)
             repository.addAll(loaded);
+            resetIndex();
             logger.info("Loaded " + loaded.size() + " notifications from storage");
         } catch (IOException e) {
             logger.warn("Could not load notifications: " + e.getMessage());
@@ -76,22 +78,28 @@ public class NotificationManager {
         idIndex = newIndex; // Atomic Swap, Safe for adding and removing.
     }
 
-    // Adds Notification in Repository, Then Saves to Storage
-    public void addNotification(Notification notification) {
 
+    /**
+     * Adds Notification in Repository, Then Saves to Storage
+     *
+     * @param notification the notification to add (cannot be null)
+     * @throws IllegalArgumentException if notification is null
+     */
+    public void addNotification(Notification notification) {
         if (notification == null) {
             logger.error("Notification can't be null.");
             throw new IllegalArgumentException("Notification cannot be null");
         }
 
         repository.add(notification);
-        Map<Integer, Notification> newIndex = new ConcurrentHashMap<>(idIndex);
+
+
+         Map<Integer, Notification> newIndex = new ConcurrentHashMap<>(idIndex);
         newIndex.put(notification.getID(), notification);
-        idIndex = newIndex; // Atomic Swap for safety
+        idIndex = newIndex; // Atomic Swap
         saveToStorage();
 
-        logger.info("Adding of " + notification + " complete.");
-
+        logger.info("Added notification #" + notification.getID());
     }
 
     // Deletes Notification in Repository, Then Saves to Storage
@@ -102,10 +110,10 @@ public class NotificationManager {
             throw new IllegalArgumentException("Notification can't be null");
         }
 
-        repository.remove(notification);
-        Map<Integer, Notification> newIndex = new ConcurrentHashMap<>(idIndex);
-        newIndex.remove(notification.getID());
-        idIndex = newIndex;
+        repository.remove(notification); // Remove from Repo
+        Map<Integer, Notification> newIndex = new ConcurrentHashMap<>(idIndex); // Build new HashMap
+        newIndex.remove(notification.getID()); // Remove notif from new HashMap
+        idIndex = newIndex; // Atomic Swap
         saveToStorage();
 
         logger.info("Removing of " + notification + " complete.");
