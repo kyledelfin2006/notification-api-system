@@ -1,21 +1,19 @@
 package api.model;
 import api.loggers.Logger;
+import api.util.Validator;
 
 public class SMSNotification extends Notification {
 
     private final String receiverPhoneNumber;
     private final String senderPhoneNumber;
 
-    private static final String SMS_REGEX = "\\d{11}";
-
-
     public SMSNotification(Logger logger, String sender, String senderPhoneNumber,
                            String receiverPhoneNumber, String message) {
         super(sender, message, logger);
 
         // Validate and store trimmed phone numbers
-        this.senderPhoneNumber = validateAndTrim(senderPhoneNumber, "Sender phone number", SMS_REGEX);
-        this.receiverPhoneNumber =  validateAndTrim(receiverPhoneNumber, "Receiver phone number", SMS_REGEX);
+        this.senderPhoneNumber = Validator.requireMatches(senderPhoneNumber,"Sender phone number", Validator.PHONE_PATTERN);
+        this.receiverPhoneNumber =  Validator.requireMatches(receiverPhoneNumber, "Receiver phone number", Validator.PHONE_PATTERN);
     }
 
     @Override
@@ -32,7 +30,6 @@ public class SMSNotification extends Notification {
     public String getReceiverPhoneNumber() {
         return receiverPhoneNumber;
     }
-
     public String getSenderPhoneNumber() {
         return senderPhoneNumber;
     }

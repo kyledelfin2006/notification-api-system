@@ -1,6 +1,7 @@
 package api.model;
 import api.loggers.Logger;
 import api.util.NotificationIDGenerator;
+import api.util.Validator;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -30,8 +31,8 @@ public abstract class Notification implements Sendable {
     protected Notification(String sender, String message, Logger logger) {
         this.logger = logger;
         this.id = NotificationIDGenerator.generateNextID();
-        this.sender =  validateAndTrim(sender,"Sender");
-        this.message = validateAndTrim(message,"Message");
+        this.sender =  Validator.requireNonBlank(sender,"Sender");
+        this.message = Validator.requireNonBlank(message,"Message");
         this.status = NotificationStatus.PENDING;
     }
 
@@ -64,30 +65,6 @@ public abstract class Notification implements Sendable {
             status = NotificationStatus.FAILED;
             logger.error("Notification #" + getID() + " failed after " + getMaxRetryAttempts() + " attempts");
         }
-    }
-
-    protected String validateAndTrim(String value, String fieldName, String regex) {
-        if (value == null || value.trim().isEmpty()) {
-            String msg = fieldName + " cannot be null or empty";
-            logger.error(msg);
-            throw new IllegalArgumentException(msg);
-        }
-        String trimmed = value.trim();
-        if (!trimmed.matches(regex)) {
-            String msg = fieldName + " is invalid: " + trimmed;
-            logger.error(msg);
-            throw new IllegalArgumentException(msg);
-        }
-        return trimmed;
-    }
-
-    protected String validateAndTrim(String value, String fieldName) {
-        if (value == null || value.trim().isEmpty()) {
-            String msg = fieldName + " Cannot be null or empty";
-            logger.error(msg);
-            throw new IllegalArgumentException(msg);
-        }
-        return value.trim();
     }
 
     public String toString() {

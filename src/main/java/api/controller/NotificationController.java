@@ -131,7 +131,6 @@ public class NotificationController {
 
         get("/api/notifications/stats", (req, res) -> {
             try {
-
                 res.type("application/json");
                 return mapper.writeValueAsString(manager.getDeliveryStatistics());
 
@@ -151,6 +150,7 @@ public class NotificationController {
             String id = req.params(":id");
 
             if (id == null) {
+                res.type("application/json");
                 res.status(400);
                 return mapper.writeValueAsString(new ErrorResponse("Missing ID parameter", 400));
             }

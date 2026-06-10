@@ -1,20 +1,17 @@
 package api.model;
 
 import api.loggers.Logger;
+import api.util.Validator;
 
 public class PushNotification extends Notification {
 
     private final String deviceToken;
-    
 
-    public String getDeviceToken(){
-        return deviceToken;
-    }
 
     public PushNotification(Logger logger, String sender, String deviceToken, String message) {
         super(sender, message,logger); // calls abstract class constructor
 
-        this.deviceToken = validateAndTrim(deviceToken, "Device Token");
+        this.deviceToken = Validator.requireNonBlank(deviceToken, "Device Token");
     }
 
     @Override
@@ -25,5 +22,9 @@ public class PushNotification extends Notification {
     @Override
     public void sendMessage() {
         logger.info("Sending Push Notification to " + getDeviceToken() + ": " + getMessage() +"\n");
+    }
+
+    public String getDeviceToken(){
+        return deviceToken;
     }
 }
