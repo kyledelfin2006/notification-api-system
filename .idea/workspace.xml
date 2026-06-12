@@ -4,16 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="daad741b-7de7-4aea-b077-86d9bcde7bf5" name="Changes" comment="ImMinor Improvements">
-      <change afterPath="$PROJECT_DIR$/src/main/java/api/util/Validator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/api/controller/NotificationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/api/controller/NotificationController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/api/dto/PushNotifDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/api/dto/PushNotifDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/api/model/EmailNotification.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/api/model/EmailNotification.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/api/model/Notification.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/api/model/Notification.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/api/model/PushNotification.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/api/model/PushNotification.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/api/model/SMSNotification.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/api/model/SMSNotification.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/api/model/SystemNotification.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/api/model/SystemNotification.java" afterDir="false" />
-    </list>
+    <list default="true" id="daad741b-7de7-4aea-b077-86d9bcde7bf5" name="Changes" comment="ImMinor Improvements" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

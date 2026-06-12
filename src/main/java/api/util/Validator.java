@@ -26,18 +26,6 @@ public final class Validator {
     }
 
     /**
-     * Validates non-blank AND matches a regex pattern.
-     * Returns the trimmed, validated string.
-     */
-    public static String requireMatches(String value, String fieldName, String regex) {
-        String trimmed = requireNonBlank(value, fieldName);
-        if (!trimmed.matches(regex)) {
-            throw new IllegalArgumentException(fieldName + " is invalid: " + trimmed);
-        }
-        return trimmed;
-    }
-
-    /**
      * Validates non-blank AND matches a compiled Pattern (more performant).
      */
     public static String requireMatches(String value, String fieldName, Pattern pattern) {

@@ -17,7 +17,8 @@ public class PushNotification extends Notification {
     @Override
     public void displayNotification() {
        logger.info("Push Notification from " + getSender() +
-                " to device " + getDeviceToken() + ": " + getMessage() + "\n");    }
+                " to device " + getDeviceToken() + ": " + getMessage() + "\n");
+    }
 
     @Override
     public void sendMessage() {
