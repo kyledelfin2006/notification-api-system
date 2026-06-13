@@ -18,7 +18,7 @@ public class EmailNotification extends Notification {
     }
 
     @Override
-    public void displayNotification() {
+    public void displayMessage() {
         logger.info("Email from " + getSenderEmail() + " to " + getReceiverEmail() +
                 ": " + getMessage());
     }

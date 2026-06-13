@@ -15,7 +15,7 @@ public class SystemNotification extends Notification {
     }
 
     @Override
-    public void displayNotification() {
+    public void displayMessage() {
         logger.info("Notification from: " + deviceOS + " to: " + deviceToken + " Message: " + getMessage());
     }
 

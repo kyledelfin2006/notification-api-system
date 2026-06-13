@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = SystemNotification.class, name = "system")
 })
 
-public abstract class Notification implements Sendable {
+public abstract class Notification {
 
     private NotificationStatus status;
     private final String sender;
@@ -36,8 +36,8 @@ public abstract class Notification implements Sendable {
         this.status = NotificationStatus.PENDING;
     }
 
-    // Polymorphic Implementation
-    public abstract void displayNotification();
+    public abstract void displayMessage();
+    public abstract void sendMessage();
 
     public final void processNotification() {
         for (int attempt = 1; attempt <= getMaxRetryAttempts(); attempt++){
@@ -45,7 +45,7 @@ public abstract class Notification implements Sendable {
                 logger.info(" | Starting Notification Process | ");
                 logger.info("Notification # " + getID() + " [" + status + "] ");
                 sendMessage(); // Polymorphic Call
-                displayNotification(); // Polymorphic Call
+                displayMessage(); // Polymorphic Call
                 status = NotificationStatus.SENT;
                 logger.info("Notification status: " + getID() + ": " + status);
                 logger.info(" | Notification Process Complete | ");
@@ -87,7 +87,8 @@ public abstract class Notification implements Sendable {
         return id;
     }
 
-    public static int getMaxRetryAttempts() {
+    protected int getMaxRetryAttempts() {
         return MAX_RETRY_ATTEMPTS;
     }
+
 }

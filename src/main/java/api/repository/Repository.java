@@ -2,6 +2,7 @@ package api.repository;
 
 
 import java.util.List;
+import java.util.Map;
 
 public interface Repository<T> {
     public void add(T type);

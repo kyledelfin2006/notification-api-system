@@ -2,7 +2,7 @@ package api.service;
 
 import api.loggers.Logger;
 import api.model.Notification;
-import api.repository.Repository;
+import api.repository.NotificationRepository;
 import api.storage.Storage;
 import api.util.NotificationIDGenerator;
 
@@ -10,27 +10,24 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class NotificationManager {
 
     private final Logger logger;
-    private final Repository<Notification> repository; // In-Memory Repository Object
+    private final NotificationRepository repository; // In-Memory Repository Object
     private final Storage<Notification> storage; // JSON File Storage
     private final NotificationService service; // Service Logic
-    private Map<Integer, Notification> idIndex; // ID-Indexing
 
     private final AtomicInteger successfulDeliveries = new AtomicInteger(0); // Stats Counter
     private final AtomicInteger failedDeliveries = new AtomicInteger(0); // Stats Counter
 
     // Manages in-memory repository and coordinates file storage, printing, and sending
-    public NotificationManager(Logger logger, Repository<Notification> repository, Storage<Notification> storage, NotificationService service) {
+    public NotificationManager(Logger logger, NotificationRepository repository, Storage<Notification> storage, NotificationService service) {
         this.repository = repository;
         this.service = service;
         this.logger = logger;
         this.storage = storage;
-        this.idIndex = new ConcurrentHashMap<>(); // Set to Concurrent Hashmap upon load.
         loadFromStorage();
     }
 
@@ -40,7 +37,6 @@ public class NotificationManager {
             List<Notification> loaded = storage.load();  // Load once, store in variable
 
             // Clear Existing
-            idIndex.clear();
             repository.clear();
 
             // Creates a stream for loaded, maps notifications into their id, finds the max
@@ -50,11 +46,9 @@ public class NotificationManager {
 
             NotificationIDGenerator.setNextId(maxId + 1); // (-1 + 1)
             repository.addAll(loaded);
-            resetIndex();
             logger.info("Loaded " + loaded.size() + " notifications from storage");
         } catch (IOException e) {
             logger.warn("Could not load notifications: " + e.getMessage());
-            idIndex.clear();
             repository.clear();
         }
     }
@@ -66,16 +60,6 @@ public class NotificationManager {
         } catch (IOException e) {
             logger.error("Failed to save notifications: " + e.getMessage());
         }
-    }
-
-    private void resetIndex() {
-        List<Notification> snapshot = repository.getAll();  // synchronized snapshot
-        Map<Integer, Notification> newIndex = new ConcurrentHashMap<>();
-        for (Notification notification : snapshot) {
-            newIndex.put(notification.getID(), notification);
-        }
-
-        idIndex = newIndex; // Atomic Swap, Safe for adding and removing.
     }
 
 
@@ -92,13 +76,7 @@ public class NotificationManager {
         }
 
         repository.add(notification);
-
-
-         Map<Integer, Notification> newIndex = new ConcurrentHashMap<>(idIndex);
-        newIndex.put(notification.getID(), notification);
-        idIndex = newIndex; // Atomic Swap
         saveToStorage();
-
         logger.info("Added notification #" + notification.getID());
     }
 
@@ -111,9 +89,6 @@ public class NotificationManager {
         }
 
         repository.remove(notification); // Remove from Repo
-        Map<Integer, Notification> newIndex = new ConcurrentHashMap<>(idIndex); // Build new HashMap
-        newIndex.remove(notification.getID()); // Remove notif from new HashMap
-        idIndex = newIndex; // Atomic Swap
         saveToStorage();
 
         logger.info("Removing of " + notification + " complete.");
@@ -126,9 +101,9 @@ public class NotificationManager {
         return repository.getAll();
     }
 
-    // GET - /api/notifications/
+    // GET - /api/notifications/:id
     public Notification getNotificationById(int id) {
-        return idIndex.get(id);
+        return repository.findById(id);
     }
 
 
@@ -181,7 +156,6 @@ public class NotificationManager {
     public void clearAllNotifications(){
         logger.info("Clearing Notifications. ");
         repository.clear();
-        idIndex = new ConcurrentHashMap<>();  // Fresh empty map — no clear() needed
         logger.info("Notifications cleared. ");
         saveToStorage();
     }
@@ -205,27 +179,21 @@ public class NotificationManager {
     public NotificationService getService() {
         return service;
     }
-
     public Storage<Notification> getStorage() {
         return storage;
     }
-
     public Logger getLogger() {
         return logger;
     }
-
     public int getSuccessfulDeliveries() {
         return successfulDeliveries.get();
     }
-
     public void setSuccessfulDeliveries(int value) {
         successfulDeliveries.set(value);
     }
-
     public int getFailedDeliveries() {
         return failedDeliveries.get();
     }
-
     public void setFailedDeliveries(int value) {
         failedDeliveries.set(value);
     }

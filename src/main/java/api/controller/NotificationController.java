@@ -28,11 +28,13 @@ public class NotificationController {
     public static void main(String[] args) {
 
 
+        // HARDCODED FOR NOW, THIS IS A LIMITATION, DO NOT REPLICATE
+
         port(8082);
 
         // Dependencies
         Logger logger = new DualLogger(new FileLogger("LoggingFile.txt"),new ConsoleLogger());
-        NotificationRepository repository = new NotificationRepository(new ArrayList<>());
+        NotificationRepository repository = new NotificationRepository();
         NotificationService service = new NotificationService(repository);
         NotificationStorage storage = new NotificationStorage(logger,"notificationStorage.txt");
         NotificationManager manager = new NotificationManager(logger,repository,storage,service);

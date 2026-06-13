@@ -1,40 +1,44 @@
 package api.repository;
 import api.model.Notification;
-
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class NotificationRepository implements Repository<Notification> {
-    private final List<Notification> notificationList;
+    private final ConcurrentHashMap<Integer, Notification> storage;
 
-    public NotificationRepository(List<Notification> notificationList) {
-        this.notificationList = new ArrayList<>(notificationList); // create new list for defensive copying
+    public NotificationRepository() {
+        this.storage = new ConcurrentHashMap<>(); // create new list for defensive copying
     }
 
     @Override
-    public synchronized void add(Notification notification){
-        notificationList.add(notification);
+    public void add(Notification notification){
+        storage.put(notification.getID(),notification);
     }
 
     @Override
-    public synchronized void remove(Notification notification){
-        notificationList.remove(notification);
+    public void remove(Notification notification){
+        storage.remove(notification.getID());
     }
 
     @Override
-    public synchronized void addAll(List<Notification> notification) {
-        notificationList.addAll(notification);
+    public void addAll(List<Notification> notifications) {
+        for (Notification n : notifications) {
+            storage.put(n.getID(), n);
+        }
     }
 
     @Override
-    public synchronized List<Notification> getAll() {
-        return List.copyOf(notificationList);
+    public List<Notification> getAll() {
+        return List.copyOf(storage.values());
     }
 
     @Override
-    public synchronized void clear(){
-        notificationList.clear();
+    public void clear(){
+        storage.clear();
+    }
+
+    public Notification findById(int id) {
+        return storage.get(id);  // O(1)
     }
 
 

@@ -17,7 +17,7 @@ public class SMSNotification extends Notification {
     }
 
     @Override
-    public void displayNotification() {
+    public void displayMessage() {
         logger.info("SMS from " + getSender() + " (" + getSenderPhoneNumber() +
                 ") to " + getReceiverPhoneNumber() + ": " + getMessage());
     }

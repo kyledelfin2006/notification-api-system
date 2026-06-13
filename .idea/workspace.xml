@@ -4,7 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="daad741b-7de7-4aea-b077-86d9bcde7bf5" name="Changes" comment="ImMinor Improvements" />
+    <list default="true" id="daad741b-7de7-4aea-b077-86d9bcde7bf5" name="Changes" comment="Minor Improvements">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/api/controller/NotificationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/api/controller/NotificationController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/api/model/EmailNotification.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/api/model/EmailNotification.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/api/model/Notification.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/api/model/Notification.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/api/model/PushNotification.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/api/model/PushNotification.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/api/model/SMSNotification.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/api/model/SMSNotification.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/api/model/Sendable.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/api/model/SystemNotification.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/api/model/SystemNotification.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/api/repository/NotificationRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/api/repository/NotificationRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/api/repository/Repository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/api/repository/Repository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/api/service/NotificationManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/api/service/NotificationManager.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -370,7 +382,15 @@
       <option name="project" value="LOCAL" />
       <updated>1780747045182</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="Minor Improvements">
+      <option name="closed" value="true" />
+      <created>1781275625226</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1781275625227</updated>
+    </task>
+    <option name="localTasksCounter" value="33" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -388,7 +408,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="-&quot;Re-added Src due to Errors&quot;" />
     <MESSAGE value="&quot;Added NotificationService.java, Improved Comment Clarity. &quot;" />
     <MESSAGE value="&quot; Cleaned Up Code &quot;" />
     <MESSAGE value="Fixed retry logic on Notification" />
@@ -413,6 +432,7 @@
     <MESSAGE value="Concurrent Hashmapping" />
     <MESSAGE value="Concurrent Hashmap" />
     <MESSAGE value="ImMinor Improvements" />
-    <option name="LAST_COMMIT_MESSAGE" value="ImMinor Improvements" />
+    <MESSAGE value="Minor Improvements" />
+    <option name="LAST_COMMIT_MESSAGE" value="Minor Improvements" />
   </component>
 </project>
